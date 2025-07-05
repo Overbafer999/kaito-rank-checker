@@ -380,20 +380,6 @@ module.exports = function handler(req, res) {
       font-size: 0.8rem;
       border: 1px solid #4caf50;
     }
-    .export-btn {
-      margin-top: 1rem;
-      padding: 0.8rem 1.5rem;
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .export-btn:hover {
-      transform: translateY(-2px);
-    }
     .footer {
       margin-top: 2.1rem;
       opacity: 0.74;
@@ -728,41 +714,12 @@ module.exports = function handler(req, res) {
             });
             html += '</ul>';
           }
-
-          html += '<button class="export-btn" onclick="app.exportResults(\'' + user.username + '\')">📄 ' + (this.currentLang === "EN" ? "Export Results" : "Экспорт результатов") + '</button>';
         } else {
           html += '<div class="error" style="color:#ffe8e8"><h4 style="margin:0 0 0.2em 0;">' + (this.currentLang === "EN" ? "🔍 No Rankings Found" : "🔍 Ранги не найдены") + '</h4><p style="margin:0.2em 0;">' + user.username + ' ' + (this.currentLang === "EN" ? "was not found in the TOP 100 of any checked projects." : "не найден в ТОП-100 ни в одном из проверенных проектов.") + '</p><p style="font-size:0.96em; opacity:0.7;">💡 ' + (this.currentLang === "EN" ? "This doesn't mean they're not ranked - they might be in positions 101+ (API limitation)" : "Это не значит, что его нет в рейтинге — возможно, он ниже 100 места (ограничение API)") + '</p></div>';
         }
 
         html += '</div>';
         resultsDiv.innerHTML = html;
-      }
-
-      exportResults(username) {
-        const resultsDiv = document.getElementById('results');
-        const rankCards = resultsDiv.querySelectorAll('.rank-card');
-        
-        let csvContent = "Project,Rank,Tier,Trending%,Users\n";
-        
-        rankCards.forEach(card => {
-          const cardText = card.textContent;
-          if (cardText.includes('#')) {
-            const lines = cardText.split('\n').filter(line => line.trim());
-            if (lines.length >= 2) {
-              csvContent += '"' + lines[0] + '","' + lines[1] + '","","",""\n';
-            }
-          }
-        });
-
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'kaito-rankings-' + username + '-' + new Date().toISOString().split('T')[0] + '.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
       }
     }
 
