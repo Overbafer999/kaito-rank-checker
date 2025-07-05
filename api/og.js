@@ -1,7 +1,5 @@
-// /api/og.js — Dynamic OpenGraph image for Kaito Rank Checker
 import { ImageResponse } from '@vercel/og';
 
-// Важно: Экспорт через default, НЕ function handler!
 export const config = {
   runtime: 'edge',
 };
@@ -15,7 +13,6 @@ export default async function handler(req) {
   const avatar = searchParams.get('avatar') || '';
   const projectName = project ? `in ${project}` : '';
 
-  // Стили для баннера
   return new ImageResponse(
     (
       <div
