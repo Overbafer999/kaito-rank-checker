@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/search.js": {
+    "api/search": {
       "maxDuration": 30
     }
   },
