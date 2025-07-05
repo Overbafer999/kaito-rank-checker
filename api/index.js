@@ -641,7 +641,7 @@ module.exports = function handler(req, res) {
       setLang(lang) {
         const langPack = this.getLangPack();
         document.getElementById('mainTitle').innerHTML = `
-          <img src="/photo_2025-05-28_12-49-08.jpg" alt="Over" style="width:40px; height:40px; border-radius: 50%; margin-right: 12px; object-fit: cover;">
+          <img src='/photo_2025-05-28_12-49-08.jpg' alt='Over' style='width:40px; height:40px; border-radius: 50%; margin-right: 12px; object-fit: cover;'>
           ${langPack[lang].title}
         `;
         document.getElementById('mainSubtitle').textContent = langPack[lang].subtitle;
