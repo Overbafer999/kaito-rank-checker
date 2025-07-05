@@ -742,14 +742,14 @@ module.exports = function handler(req, res) {
         const resultsDiv = document.getElementById('results');
         const rankCards = resultsDiv.querySelectorAll('.rank-card');
         
-        let csvContent = "Project,Rank,Tier,Trending%,Users\\n";
+        let csvContent = "Project,Rank,Tier,Trending%,Users\n";
         
         rankCards.forEach(card => {
           const cardText = card.textContent;
           if (cardText.includes('#')) {
-            const lines = cardText.split('\\n').filter(line => line.trim());
+            const lines = cardText.split('\n').filter(line => line.trim());
             if (lines.length >= 2) {
-              csvContent += '"' + lines[0] + '","' + lines[1] + '","","",""\\n';
+              csvContent += '"' + lines[0] + '","' + lines[1] + '","","",""\n';
             }
           }
         });
