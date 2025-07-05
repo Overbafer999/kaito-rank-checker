@@ -2,7 +2,7 @@
 module.exports = function handler(req, res) {
   res.setHeader('Content-Type', 'text/html');
   res.status(200).send(`
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -308,7 +308,6 @@ module.exports = function handler(req, res) {
       text-align: center;
       padding: 2rem 1rem;
     }
-    /* Enhanced Progress Bar */
     .progress-container {
       width: 100%;
       height: 8px;
@@ -346,14 +345,6 @@ module.exports = function handler(req, res) {
       margin: 0 auto 1.0rem;
     }
     @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-    .skeleton {
-      background: linear-gradient(90deg, #222749 25%, #38406c 50%, #222749 75%);
-      background-size: 400% 100%;
-      animation: skeleton 1.3s infinite linear;
-      border-radius: 10px;
-      min-height: 35px;
-    }
-    @keyframes skeleton { 0% { background-position: 100% 50% } 100% { background-position: 0 50% } }
     .rank-card {
       background: rgba(36,46,76,0.69);
       padding: 1rem 0.95rem;
@@ -379,66 +370,16 @@ module.exports = function handler(req, res) {
       margin: 1rem 0 0.4rem 0;
       font-size: 1.13rem;
     }
-    .tooltip {
-      position: relative;
-      cursor: pointer;
-    }
-    .tooltip .tooltip-text {
-      visibility: hidden;
-      opacity: 0;
+    .cache-indicator {
       position: absolute;
-      bottom: 110%; left: 50%; transform: translateX(-50%);
-      background: #232456cc;
-      color: #b4d2ff;
-      padding: 0.43em 1em;
-      border-radius: 7px;
-      font-size: 0.97em;
-      white-space: nowrap;
-      z-index: 10;
-      transition: all .19s;
-      pointer-events: none;
+      top: 10px; left: 10px;
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      border: 1px solid #4caf50;
     }
-    .tooltip:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
-      bottom: 130%;
-    }
-    .footer {
-      margin-top: 2.1rem;
-      opacity: 0.74;
-      font-size: 0.97rem;
-      text-align: center;
-      color: #cedcff;
-    }
-    .footer a {
-      color: #c6eaff;
-      text-decoration: underline;
-      transition: color .13s;
-    }
-    .footer a:hover {
-      color: #8cf6ff;
-    }
-    /* Theme Switch */
-    .theme-switch {
-      position: absolute;
-      right: 100px; top: 28px;
-      z-index: 25;
-    }
-    .theme-btn {
-      background: none;
-      border: 1px solid #88e6ff;
-      color: #88e6ff;
-      padding: 6px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.3s;
-    }
-    .theme-btn:hover {
-      background: #88e6ff;
-      color: #191b2c;
-    }
-    /* Export button */
     .export-btn {
       margin-top: 1rem;
       padding: 0.8rem 1.5rem;
@@ -453,16 +394,12 @@ module.exports = function handler(req, res) {
     .export-btn:hover {
       transform: translateY(-2px);
     }
-    /* Cache indicator */
-    .cache-indicator {
-      position: absolute;
-      top: 10px; left: 10px;
-      background: rgba(76, 175, 80, 0.2);
-      color: #4caf50;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      border: 1px solid #4caf50;
+    .footer {
+      margin-top: 2.1rem;
+      opacity: 0.74;
+      font-size: 0.97rem;
+      text-align: center;
+      color: #cedcff;
     }
     @media (max-width: 600px) {
       .container { padding: 2.1rem 0.5rem 1.1rem 0.5rem; max-width: 98vw; border-radius: 19px; margin-top: 26px;}
@@ -473,7 +410,6 @@ module.exports = function handler(req, res) {
       .faq-btn { left: 11px; top: 11px; width:32px;height:32px;}
       .faq-popup { left: 10px; top: 51px; padding: 0.8em 0.85em 0.9em 0.95em; }
       .lang-switch { right: 8px; top: 10px; font-size:1.01rem;}
-      .theme-switch { right: 8px; top: 50px; }
     }
   </style>
 </head>
@@ -481,9 +417,6 @@ module.exports = function handler(req, res) {
   <div class="bg-net"></div>
   <div class="bg-glow"></div>
   <div class="by-over">By OveR</div>
-  <div class="theme-switch">
-    <button id="themeBtn" class="theme-btn">🌙 Dark</button>
-  </div>
   <div class="container fade-in-up">
     <button class="faq-btn" id="faqBtn" title="How it works? / Как это работает?">?</button>
     <div class="lang-switch">
@@ -492,13 +425,10 @@ module.exports = function handler(req, res) {
     <div id="faqPopup" class="faq-popup">
       <div class="faq-title" id="faqTitle">How it works?</div>
       <div class="faq-desc" id="faqDesc">
-        Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 80+ trending crypto projects. Results are updated in real time and cached for better performance.
+        Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 80+ trending crypto projects. Results are cached for better performance.
       </div>
     </div>
-    
-  
-      🎯 Kaito Rank Tracker
-    </h1>
+    <h1 id="mainTitle">🎯 Kaito Rank Tracker</h1>
     <div class="kaito-subtitle" id="mainSubtitle">
       Find your rankings across 80+ trending crypto projects
     </div>
@@ -527,10 +457,8 @@ module.exports = function handler(req, res) {
       Made by OveR // Kaito Community
     </div>
   </div>
-  <!-- Particles.js for bg-animation -->
   <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.3.0/tsparticles.bundle.min.js"></script>
   <script>
-    // Enhanced app with caching, progress tracking, and better UX
     class KaitoRankTrackerApp {
       constructor() {
         this.currentLang = "EN";
@@ -543,7 +471,6 @@ module.exports = function handler(req, res) {
       init() {
         this.initParticles();
         this.initEventListeners();
-        this.loadFromCache();
         this.setLang(this.currentLang);
       }
 
@@ -568,11 +495,9 @@ module.exports = function handler(req, res) {
       }
 
       initEventListeners() {
-        // Language switching
         document.getElementById('langEn').onclick = () => this.switchLang("EN");
         document.getElementById('langRu').onclick = () => this.switchLang("RU");
 
-        // FAQ toggle
         const faqBtn = document.getElementById('faqBtn');
         const faqPopup = document.getElementById('faqPopup');
         let faqOpen = false;
@@ -589,23 +514,19 @@ module.exports = function handler(req, res) {
           }
         };
 
-        // Mode selection
         document.querySelectorAll('.mode-btn').forEach(btn => {
           btn.onclick = () => {
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             this.selectedMode = btn.dataset.mode;
-            this.saveToCache();
           };
         });
 
-        // Search form
         document.getElementById('searchForm').onsubmit = (e) => {
           e.preventDefault();
           this.performSearch();
         };
 
-        // Username input validation with debounce
         let debounceTimer;
         document.getElementById('username').oninput = (e) => {
           clearTimeout(debounceTimer);
@@ -613,9 +534,6 @@ module.exports = function handler(req, res) {
             this.validateUsername(e.target.value);
           }, 500);
         };
-
-        // Theme switch
-        document.getElementById('themeBtn').onclick = () => this.toggleTheme();
       }
 
       validateUsername(username) {
@@ -635,15 +553,11 @@ module.exports = function handler(req, res) {
         document.getElementById('langRu').classList.toggle('selected', lang === "RU");
         this.currentLang = lang;
         this.setLang(lang);
-        this.saveToCache();
       }
 
       setLang(lang) {
         const langPack = this.getLangPack();
-        document.getElementById('mainTitle').innerHTML = `
-          <img src='/photo_2025-05-28_12-49-08.jpg' alt='Over' style='width:40px; height:40px; border-radius: 50%; margin-right: 12px; object-fit: cover;'>
-          ${langPack[lang].title}
-        `;
+        document.getElementById('mainTitle').textContent = langPack[lang].title;
         document.getElementById('mainSubtitle').textContent = langPack[lang].subtitle;
         document.getElementById('mainSub2').textContent = langPack[lang].sub2;
         document.getElementById('searchBtn').textContent = langPack[lang].btn;
@@ -686,7 +600,175 @@ module.exports = function handler(req, res) {
             faqDesc: "Введи свой Twitter username, выбери режим поиска и начни поиск. Сервис покажет твои TOP-позиции по 80+ трендовым крипто-проектам. Результаты кешируются для лучшей производительности.",
             modes: [
               {icon:"⚡",name:"Быстрый",desc:"15 проектов"},
-              {icon:"🚀
+              {icon:"🚀",name:"Стандарт",desc:"35 проектов"},
+              {icon:"🔥",name:"Полный",desc:"65 проектов"},
+              {icon:"💎",name:"Ultimate",desc:"80 проектов"},
+            ],
+            footer: "Сделано OveR // Kaito Community"
+          }
+        };
+      }
+
+      async performSearch() {
+        if (this.searchInProgress) return;
+        
+        const username = document.getElementById('username').value.trim();
+        if (!username) {
+          alert(this.currentLang === "EN" ? "Enter username!" : "Введите ник!");
+          return;
+        }
+
+        const cacheKey = username + '_' + this.selectedMode;
+        const cachedResult = this.cache.get(cacheKey);
+        
+        if (cachedResult && (Date.now() - cachedResult.timestamp) < 30 * 60 * 1000) {
+          this.displayResults(cachedResult.data, true);
+          return;
+        }
+
+        this.searchInProgress = true;
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsDiv = document.getElementById('results');
+        
+        searchBtn.disabled = true;
+        searchBtn.textContent = this.currentLang === "EN" ? "SEARCHING..." : "ПОИСК...";
+
+        this.showLoadingWithProgress();
+
+        try {
+          const response = await fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, mode: this.selectedMode })
+          });
+
+          const data = await response.json();
+          
+          if (data.success && data.data) {
+            this.cache.set(cacheKey, {
+              data: data.data,
+              timestamp: Date.now()
+            });
+            this.displayResults(data.data, false);
+          } else {
+            throw new Error(data.error || (this.currentLang === "EN" ? "Search failed" : "Поиск не удался"));
+          }
+        } catch (error) {
+          resultsDiv.innerHTML = '<div class="error"><h3>❌ Error</h3><p>' + error.message + '</p></div>';
+        } finally {
+          this.searchInProgress = false;
+          searchBtn.disabled = false;
+          searchBtn.textContent = this.getLangPack()[this.currentLang].btn;
+        }
+      }
+
+      showLoadingWithProgress() {
+        const resultsDiv = document.getElementById('results');
+        const modeData = {
+          lightning: { projects: 15, time: 8 },
+          standard: { projects: 35, time: 20 },
+          complete: { projects: 65, time: 45 },
+          ultimate: { projects: 80, time: 60 }
+        };
+
+        const currentMode = modeData[this.selectedMode];
+        let progress = 0;
+        const interval = (currentMode.time * 1000) / 100;
+
+        resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><div class="progress-container"><div class="progress-bar" id="progressBar" style="width: 0%"></div></div><p style="color:#b3eaff; opacity:0.87">' + (this.currentLang === "EN" ? "Searching" : "Поиск") + ' <b>' + document.getElementById('username').value + '</b> ' + (this.currentLang === "EN" ? "in" : "в") + ' <b>' + this.selectedMode + '</b> mode...</p><p style="font-size:0.97rem; opacity:0.68; margin:0.4em 0 0 0;"><small><span id="progressText">0/' + currentMode.projects + ' projects checked</span><br>' + (this.currentLang === "EN" ? "Estimated time" : "Примерное время") + ': ' + currentMode.time + 's</small></p></div>';
+
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        
+        const progressInterval = setInterval(() => {
+          progress += 1;
+          const projectsChecked = Math.floor((progress / 100) * currentMode.projects);
+          
+          progressBar.style.width = progress + '%';
+          progressText.textContent = projectsChecked + '/' + currentMode.projects + ' projects checked';
+          
+          if (progress >= 100) {
+            clearInterval(progressInterval);
+          }
+        }, interval);
+
+        this.progressInterval = progressInterval;
+      }
+
+      displayResults(data, fromCache = false) {
+        if (this.progressInterval) {
+          clearInterval(this.progressInterval);
+        }
+
+        const { user, stats, rankings, analysis } = data;
+        const resultsDiv = document.getElementById('results');
+        
+        let html = '<div style="position: relative;">' + (fromCache ? '<div class="cache-indicator">📦 Cached</div>' : '') + '<h3 style="font-size:1.24rem; color:#71eaff; margin-bottom:1.1em;">' + (this.currentLang === "EN" ? "📊 Results for" : "📊 Результаты для") + ' <b>' + user.username + '</b></h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;"><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Projects Found" : "Проектов найдено") + '</strong><br><span style="font-size:1.5rem; color:#4caf50;">' + stats.found_in + '</span><span style="color:#999;">/' + stats.total_projects + '</span></div></div><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Processing Time" : "Время обработки") + '</strong><br><span style="font-size:1.5rem;">' + stats.processing_time + 's</span></div></div>';
+
+        if (analysis && analysis.best_rank) {
+          html += '<div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Best Rank" : "Лучший ранг") + '</strong><br><span style="font-size:1.5rem; color:#ffd700;">#' + analysis.best_rank + '</span></div></div><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Performance" : "Перформанс") + '</strong><br><span style="font-size:1.2rem; text-transform:capitalize; color:#4ecdc4;">' + analysis.performance_level + '</span></div></div>';
+        }
+
+        html += '</div>';
+
+        if (rankings && rankings.length > 0) {
+          html += '<h4 style="margin-top:1.3em; color:#7ee2ff;">' + (this.currentLang === "EN" ? "🎯 Rankings Found:" : "🎯 Найденные ранги:") + '</h4>';
+          
+          rankings.forEach((rank, index) => {
+            const emoji = ['🥇','🥈','🥉','4️⃣','5️⃣'][index] || '📊';
+            const tierIcon = rank.tier === 'top' ? '🔥' : rank.tier === 'high' ? '⚡' : rank.tier === 'mid' ? '🚀' : '💎';
+            
+            html += '<div class="rank-card" style="animation-delay: ' + (index * 0.1) + 's;"><div><strong>' + emoji + ' ' + rank.project + '</strong><br><small style="color:#88e6ff;">' + rank.tier.toUpperCase() + ' tier • ' + rank.trending_percentage + '% trending</small></div><div style="text-align:right;"><strong style="color:#ffd700;">#' + rank.rank + '</strong> ' + tierIcon + '<br><small style="color:#999;">' + rank.total_users_checked + ' users</small></div></div>';
+          });
+
+          if (analysis && analysis.recommendations && analysis.recommendations.length > 0) {
+            html += '<h4 style="color:#ffe877;margin:1.3em 0 0.2em 0;">' + (this.currentLang === "EN" ? "💡 Recommendations:" : "💡 Рекомендации:") + '</h4><ul style="color:#c8e6ff; opacity:0.9;">';
+            analysis.recommendations.forEach(rec => {
+              html += '<li style="margin:0.5rem 0;">' + rec + '</li>';
+            });
+            html += '</ul>';
+          }
+
+          html += '<button class="export-btn" onclick="app.exportResults(\'' + user.username + '\')">📄 ' + (this.currentLang === "EN" ? "Export Results" : "Экспорт результатов") + '</button>';
+        } else {
+          html += '<div class="error" style="color:#ffe8e8"><h4 style="margin:0 0 0.2em 0;">' + (this.currentLang === "EN" ? "🔍 No Rankings Found" : "🔍 Ранги не найдены") + '</h4><p style="margin:0.2em 0;">' + user.username + ' ' + (this.currentLang === "EN" ? "was not found in the TOP 100 of any checked projects." : "не найден в ТОП-100 ни в одном из проверенных проектов.") + '</p><p style="font-size:0.96em; opacity:0.7;">💡 ' + (this.currentLang === "EN" ? "This doesn't mean they're not ranked - they might be in positions 101+ (API limitation)" : "Это не значит, что его нет в рейтинге — возможно, он ниже 100 места (ограничение API)") + '</p></div>';
+        }
+
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+      }
+
+      exportResults(username) {
+        const resultsDiv = document.getElementById('results');
+        const rankCards = resultsDiv.querySelectorAll('.rank-card');
+        
+        let csvContent = "Project,Rank,Tier,Trending%,Users\\n";
+        
+        rankCards.forEach(card => {
+          const cardText = card.textContent;
+          if (cardText.includes('#')) {
+            const lines = cardText.split('\\n').filter(line => line.trim());
+            if (lines.length >= 2) {
+              csvContent += '"' + lines[0] + '","' + lines[1] + '","","",""\\n';
+            }
+          }
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'kaito-rankings-' + username + '-' + new Date().toISOString().split('T')[0] + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }
+    }
+
+    const app = new KaitoRankTrackerApp();
+  </script>
+  <div id="bg-particles" style="position:fixed; inset:0; z-index:0;"></div>
 </body>
 </html>
   `);
