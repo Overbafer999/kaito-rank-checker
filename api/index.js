@@ -503,7 +503,7 @@ module.exports = function handler(req, res) {
           document.getElementById('footerTxt').textContent = langPack[lang].footer;
           const modesBtns = document.querySelectorAll('.mode-btn');
           modesBtns.forEach((btn, i) => {
-            btn.innerHTML = langPack[lang].modes[i].icon + ' ' + langPack[lang].modes[i].name + ` <span>(${langPack[lang].modes[i].desc})</span>`;
+            btn.innerHTML = langPack[lang].modes[i].icon + ' ' + langPack[lang].modes[i].name + ' <span>(' + langPack[lang].modes[i].desc + ')</span>';
           });
         }
         document.getElementById('langEn').onclick = () => {
