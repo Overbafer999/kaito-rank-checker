@@ -404,7 +404,9 @@ module.exports = function handler(req, res) {
             Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 60+ trending crypto projects. Results are updated in real time.
           </div>
         </div>
-        <h1 id="mainTitle">🎯 Kaito Rank Tracker</h1>
+         <h1 id="mainTitle" style="display: flex; align-items: center;">
+  <img src="/photo_2025-05-28_12-49-08.jpg" alt="Over" style="width:40px; height:40px; border-radius: 50%; margin-right: 12px; object-fit: cover;">
+  🎯 Kaito Rank Tracker</h1>
         <div class="kaito-subtitle" id="mainSubtitle">
           Find your rankings across 60+ trending crypto projects
         </div>
