@@ -5,18 +5,14 @@
       "maxDuration": 30
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/api/index.js"
+      "source": "/",
+      "destination": "/api/index"
     },
     {
-      "src": "/health",
-      "dest": "/api/health.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1.js"
+      "source": "/health",
+      "destination": "/api/health"
     }
   ],
   "headers": [
