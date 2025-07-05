@@ -1,5 +1,5 @@
 // Kaito Rank Checker - by OveR | index.js
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   res.setHeader('Content-Type', 'text/html');
   res.status(200).send(`
     <!DOCTYPE html>
