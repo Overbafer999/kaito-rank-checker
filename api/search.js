@@ -30,7 +30,7 @@ class KaitoAPI {
           
           const response = await fetch(url, {
             headers: this.headers,
-            signal: AbortSignal.timeout(3000)
+            signal: AbortSignal.timeout(1000)
           });
           
           if (!response.ok) {
@@ -307,8 +307,7 @@ class KaitoDashboard {
           
           results.projects.push(projectResult);
           
-          const delay = mode === 'lightning' ? 100 : mode === 'standard' ? 200 : 300;
-          await new Promise(resolve => setTimeout(resolve, delay));
+        
           
         } catch (error) {
           results.projects.push({
