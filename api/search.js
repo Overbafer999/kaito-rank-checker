@@ -122,13 +122,14 @@ class KaitoAPI {
 
   // 🔄 Попытка загрузить обновленные проекты
   async getTrendingProjects() {
-    try {
-      // Пытаемся получить обновленные данные
-      const response = await fetch(new URL('/api/update-projects', 'https://kaito-rank-checker.vercel.app').toString(), {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(5000)
-      });
+  try {
+    console.log('📸 Using updated fallback projects (Top-50 from Kaito)');
+    return this.getFallbackProjects();
+  } catch (error) {
+    console.log('⚠️ Fallback failed, using basic data');
+    return this.getFallbackProjects();
+  }
+}
 
       if (response.ok) {
         const projectsData = await response.json();
