@@ -76,25 +76,29 @@ class KaitoAPI {
   }
 
   // БЫСТРЫЙ запрос к Kaito API
-  async getProjectLeaderboard(topicId) {
-    try {
-      const url = `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100&customized_community=customized&community_yaps=true`;
-      
-      const response = await fetch(url, {
-        headers: this.headers,
-        signal: AbortSignal.timeout(2000) // 2 секунды таймаут
-      });
-      
-      if (!response.ok) return null;
-      
-      const data = await response.json();
-      return Array.isArray(data) ? data : null;
-      
-    } catch (error) {
-      console.error(`Error fetching ${topicId}:`, error.message);
-      return null; // Если ошибка - просто пропускаем проект
+  async getProjectLeaderboard(topicId) {  // ← НЕ ХВАТАЕТ "asy"
+  try {
+    const url = `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100&customized_community=customized&community_yaps=true`;
+    
+    const response = await fetch(url, {
+      headers: this.headers,
+      signal: AbortSignal.timeout(2000)
+    });
+    
+    if (!response.ok) {
+      console.error(`[KaitoAPI] HTTP error! ${response.status} for topicId: ${topicId}`);
+      return null;
     }
+    
+    const data = await response.json();
+    console.log(`[KaitoAPI] Response for ${topicId}:`, JSON.stringify(data).slice(0, 300));
+    return Array.isArray(data) ? data : null;
+    
+  } catch (error) {
+    console.error(`[KaitoAPI] FETCH FAIL for ${topicId}:`, error.message);
+    return null;
   }
+}
 
   findUserInLeaderboard(leaderboard, username) {
     if (!leaderboard || !Array.isArray(leaderboard)) return null;
