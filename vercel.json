@@ -1,19 +1,26 @@
 {
-  "rewrites": [
-    { "source": "/", "destination": "/api/index" }
-  ],
   "functions": {
-    "api/update-projects.js": {
-      "maxDuration": 30
-    },
     "api/search.js": {
-      "maxDuration": 25
+      "maxDuration": 60
     }
   },
-  "crons": [
+  "headers": [
     {
-      "path": "/api/update-projects",
-      "schedule": "0 6 * * *"
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
+      ]
     }
   ]
 }
