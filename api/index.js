@@ -9,15 +9,15 @@ module.exports = function handler(req, res) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kaito Rank Tracker - by OveR</title>
   <!-- SEO & OpenGraph -->
-  <meta name="description" content="Kaito Rank Checker — Find your Twitter account in 80+ trending crypto project leaderboards. Made by OveR.">
+  <meta name="description" content="Kaito Rank Checker — Find your Twitter account in 50+ TOP trending crypto project leaderboards. Updated daily with real Kaito data.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Kaito Rank Tracker — by OveR">
-  <meta property="og:description" content="Find your Twitter account in 80+ trending crypto project leaderboards.">
+  <meta property="og:description" content="Find your Twitter account in 50+ TOP trending crypto project leaderboards. Updated daily.">
   <meta property="og:url" content="https://kaito-rank-checker.vercel.app/">
   <meta property="og:image" content="/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Kaito Rank Tracker — by OveR">
-  <meta name="twitter:description" content="Check your crypto influence: Are you in the TOP across 80+ projects?">
+  <meta name="twitter:description" content="Check your crypto influence: Are you in the TOP across 50+ trending projects?">
   <meta name="twitter:image" content="/og-image.png">
   <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
   <style>
@@ -411,15 +411,15 @@ module.exports = function handler(req, res) {
     <div id="faqPopup" class="faq-popup">
       <div class="faq-title" id="faqTitle">How it works?</div>
       <div class="faq-desc" id="faqDesc">
-        Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 80+ trending crypto projects. Results are cached for better performance.
+        Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 50+ trending crypto projects. Results are cached for better performance.
       </div>
     </div>
     <h1 id="mainTitle">🎯 Kaito Rank Tracker</h1>
     <div class="kaito-subtitle" id="mainSubtitle">
-      Find your rankings across 80+ trending crypto projects
+      Find your rankings across 50+ TOP trending crypto projects
     </div>
     <div class="kaito-sub2" id="mainSub2">
-      More projects. Better insights. Real analytics.
+      Updated daily. Real Kaito data. Better insights.
     </div>
     <form class="search-form" id="searchForm" autocomplete="off">
       <input 
@@ -433,8 +433,8 @@ module.exports = function handler(req, res) {
       <div class="modes-list" id="modesList">
         <button class="mode-btn selected" data-mode="lightning" type="button">⚡ Lightning <span>(15)</span></button>
         <button class="mode-btn" data-mode="standard" type="button">🚀 Standard <span>(35)</span></button>
-        <button class="mode-btn" data-mode="complete" type="button">🔥 Complete <span>(65)</span></button>
-        <button class="mode-btn" data-mode="ultimate" type="button">💎 Ultimate <span>(80)</span></button>
+        <button class="mode-btn" data-mode="complete" type="button">🔥 Complete <span>(50)</span></button>
+        <button class="mode-btn" data-mode="ultimate" type="button">💎 Ultimate <span>(50)</span></button>
       </div>
       <button type="submit" class="btn-shimmer" id="searchBtn">START SEARCH</button>
     </form>
@@ -562,33 +562,33 @@ module.exports = function handler(req, res) {
         return {
           EN: {
             title: "🎯 Kaito Rank Tracker",
-            subtitle: "Find your rankings across 80+ trending crypto projects",
-            sub2: "More projects. Better insights. Real analytics.",
+            subtitle: "Find your rankings across 50+ TOP trending crypto projects",
+            sub2: "Updated daily. Real Kaito data. Better insights.",
             btn: "START SEARCH",
             username: "Enter Twitter username (@teddi_speaks)",
             faqTitle: "How it works?",
-            faqDesc: "Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 80+ trending crypto projects. Results are cached for better performance.",
+            faqDesc: "Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 50+ trending crypto projects. Results are cached for better performance.",
             modes: [
               {icon:"⚡",name:"Lightning",desc:"15 projects"},
               {icon:"🚀",name:"Standard",desc:"35 projects"},
-              {icon:"🔥",name:"Complete",desc:"65 projects"},
-              {icon:"💎",name:"Ultimate",desc:"80 projects"},
+              {icon:"🔥",name:"Complete",desc:"50 projects"},
+              {icon:"💎",name:"Ultimate",desc:"50 projects"},
             ],
             footer: "Made by OveR // Kaito Community"
           },
           RU: {
             title: "🎯 Kaito Rank Tracker",
-            subtitle: "Проверь свой рейтинг в 80+ топовых крипто проектах",
-            sub2: "Больше проектов. Больше инсайтов. Настоящая аналитика.",
+            subtitle: "Проверь свой рейтинг в 50+ ТОП трендовых крипто проектах",
+            sub2: "Обновляется ежедневно. Реальные данные Kaito. Больше инсайтов.",
             btn: "ПОИСК",
             username: "Введи ник в Twitter (@teddi_speaks)",
             faqTitle: "Как это работает?",
-            faqDesc: "Введи свой Twitter username, выбери режим поиска и начни поиск. Сервис покажет твои TOP-позиции по 80+ трендовым крипто-проектам. Результаты кешируются для лучшей производительности.",
+            faqDesc: "Введи свой Twitter username, выбери режим поиска и начни поиск. Сервис покажет твои TOP-позиции по 50+ трендовым крипто-проектам. Результаты кешируются для лучшей производительности.",
             modes: [
               {icon:"⚡",name:"Быстрый",desc:"15 проектов"},
               {icon:"🚀",name:"Стандарт",desc:"35 проектов"},
-              {icon:"🔥",name:"Полный",desc:"65 проектов"},
-              {icon:"💎",name:"Ultimate",desc:"80 проектов"},
+              {icon:"🔥",name:"Полный",desc:"50 проектов"},
+              {icon:"💎",name:"Ultimate",desc:"50 проектов"},
             ],
             footer: "Сделано OveR // Kaito Community"
           }
@@ -653,8 +653,8 @@ module.exports = function handler(req, res) {
         const modeData = {
           lightning: { projects: 15, time: 8 },
           standard: { projects: 35, time: 20 },
-          complete: { projects: 65, time: 45 },
-          ultimate: { projects: 80, time: 60 }
+          complete: { projects: 50, time: 35 },
+          ultimate: { projects: 50, time: 35 }
         };
 
         const currentMode = modeData[this.selectedMode];
@@ -729,4 +729,3 @@ module.exports = function handler(req, res) {
 </body>
 </html>
   `);
-}
