@@ -1,6 +1,9 @@
 // Vercel serverless function - Main search API
 // Kaito Rank Tracker by @Over9725
 
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+
 class KaitoAPI {
   constructor() {
     this.baseURL = 'https://hub.kaito.ai/api/v1';
@@ -10,6 +13,7 @@ class KaitoAPI {
       'Referer': 'https://kaito.ai/',
       'Origin': 'https://kaito.ai'
     };
+    this.projectsFilePath = join(process.cwd(), 'data', 'projects.json');
   }
 
   async getProjectLeaderboard(topicId, duration = '30d', retries = 2) {
@@ -120,96 +124,128 @@ class KaitoAPI {
     throw new Error('Invalid input format. Use: @username or Twitter User ID');
   }
 
-  // 🔥 FULL PROJECT LIST - 60+ Projects
-  getTrendingProjects() {
-    return {
-      top_tier: [
-        { id: 'ANOMA', name: 'ANOMA', percentage: 8.72, tier: 'top' },
-        { id: 'OPENLEDGER', name: 'OPENLEDGER', percentage: 6.31, tier: 'top' },
-        { id: 'INFINIT', name: 'INFINIT', percentage: 5.18, tier: 'top' },
-        { id: 'MEMEX', name: 'MEMEX', percentage: 4.73, tier: 'top' },
-        { id: 'INFINEX', name: 'INFINEX', percentage: 4.60, tier: 'top' },
-        { id: 'M', name: 'M', percentage: 3.68, tier: 'top' },
-        { id: 'HANA', name: 'HANA', percentage: 3.20, tier: 'top' },
-        { id: 'MITOSIS', name: 'MITOSIS', percentage: 3.09, tier: 'top' },
-        { id: 'LOMBARD', name: 'LOMBARD', percentage: 2.76, tier: 'top' },
-        { id: 'THEORIQ', name: 'THEORIQ', percentage: 2.56, tier: 'top' },
-        { id: 'BOUNDLESS', name: 'BOUNDLESS', percentage: 2.37, tier: 'top' },
-        { id: 'SOM', name: 'SOM', percentage: 2.23, tier: 'top' },
-        { id: 'ES', name: 'ES', percentage: 2.10, tier: 'top' },
-        { id: 'WARD', name: 'WARD', percentage: 2.04, tier: 'top' }
-      ],
+  // 🔄 НОВАЯ функция - загружает проекты из автообновляемого файла
+  async getTrendingProjects() {
+    try {
+      // Пытаемся загрузить из файла
+      if (existsSync(this.projectsFilePath)) {
+        const projectsData = JSON.parse(readFileSync(this.projectsFilePath, 'utf8'));
+        
+        // Проверяем возраст данных
+        const lastUpdate = new Date(projectsData.updated_at);
+        const now = new Date();
+        const hoursDiff = (now - lastUpdate) / (1000 * 60 * 60);
+        
+        if (hoursDiff < 48) { // Данные свежие (младше 48 часов)
+          console.log(`📦 Using cached projects data (${hoursDiff.toFixed(1)}h old)`);
+          return this.formatProjectsForAPI(projectsData.projects);
+        }
+      }
       
-      high_tier: [
-        { id: 'CAMP', name: 'CAMP', percentage: 1.84, tier: 'high' },
-        { id: 'VOOI', name: 'VOOI', percentage: 1.84, tier: 'high' },
-        { id: 'LUMI', name: 'LUMI', percentage: 1.77, tier: 'high' },
-        { id: 'NOVAS', name: 'NOVAS', percentage: 1.77, tier: 'high' },
-        { id: 'MIRA', name: 'MIRA', percentage: 1.77, tier: 'high' },
-        { id: 'PORTALT', name: 'PORTALT', percentage: 1.77, tier: 'high' },
-        { id: 'BLESS', name: 'BLESS', percentage: 1.71, tier: 'high' },
-        { id: 'KATANA', name: 'KATANA', percentage: 1.71, tier: 'high' },
-        { id: 'CALDERA', name: 'CALDERA', percentage: 1.71, tier: 'high' },
-        { id: 'OG', name: 'OG', percentage: 1.71, tier: 'high' },
-        { id: 'OPENSEA', name: 'OPENSEA', percentage: 1.38, tier: 'high' },
-        { id: 'SURF', name: 'SURF', percentage: 1.38, tier: 'high' },
-        { id: 'NOYA', name: 'NOYA', percentage: 1.31, tier: 'high' },
-        { id: 'MONAD', name: 'MONAD', percentage: 1.18, tier: 'high' },
-        { id: 'ABSTRACT', name: 'ABSTRACT', percentage: 1.18, tier: 'high' },
-        { id: 'SAPIEN', name: 'SAPIEN', percentage: 1.12, tier: 'high' },
-        { id: 'SOUL', name: 'SOUL', percentage: 1.05, tier: 'high' }
-      ],
+      // Если файла нет или данные старые - используем fallback
+      console.log('⚠️ Using fallback projects data');
+      return this.getFallbackProjects();
       
-      mid_tier: [
-        { id: 'OBJKT', name: 'OBJKT', percentage: 0.99, tier: 'mid' },
-        { id: 'PUMP', name: 'PUMP', percentage: 0.85, tier: 'mid' },
-        { id: 'ESPRESSO', name: 'ESPRESSO', percentage: 0.85, tier: 'mid' },
-        { id: 'SUCCINCT', name: 'SUCCINCT', percentage: 0.79, tier: 'mid' },
-        { id: 'ETHOSN', name: 'ETHOSN', percentage: 0.72, tier: 'mid' },
-        { id: 'SATLAYER', name: 'SATLAYER', percentage: 0.72, tier: 'mid' },
-        { id: 'IRYS', name: 'IRYS', percentage: 0.72, tier: 'mid' },
-        { id: 'TURT', name: 'TURT', percentage: 0.66, tier: 'mid' },
-        { id: 'HEMI', name: 'HEMI', percentage: 0.66, tier: 'mid' },
-        { id: 'FXHASH', name: 'FXHASH', percentage: 0.66, tier: 'mid' },
-        { id: 'GENO', name: 'GENO', percentage: 0.66, tier: 'mid' },
-        { id: 'POLY', name: 'POLY', percentage: 0.59, tier: 'mid' },
-        { id: 'MET', name: 'MET', percentage: 0.59, tier: 'mid' },
-        { id: 'MEG', name: 'MEG', percentage: 0.59, tier: 'mid' },
-        { id: 'SIDE', name: 'SIDE', percentage: 0.59, tier: 'mid' },
-        { id: 'RISC', name: 'RISC', percentage: 0.53, tier: 'mid' }
-      ],
-      
-      emerging_tier: [
-        { id: 'YEIFI', name: 'YEIFI', percentage: 0.46, tier: 'emerging' },
-        { id: 'AVAN', name: 'AVAN', percentage: 0.39, tier: 'emerging' },
-        { id: 'UNION', name: 'UNION', percentage: 0.39, tier: 'emerging' },
-        { id: 'LINEA', name: 'LINEA', percentage: 0.39, tier: 'emerging' },
-        { id: 'TIMEFUN', name: 'TIMEFUN', percentage: 0.33, tier: 'emerging' },
-        { id: 'OVERTAKE', name: 'OVERTAKE', percentage: 0.26, tier: 'emerging' },
-        { id: 'BACKPACK', name: 'BACKPACK', percentage: 0.26, tier: 'emerging' },
-        { id: 'RUJI', name: 'RUJI', percentage: 0.26, tier: 'emerging' },
-        { id: 'GAIB', name: 'GAIB', percentage: 0.26, tier: 'emerging' },
-        { id: 'ALLORA', name: 'ALLORA', percentage: 0.26, tier: 'emerging' },
-        { id: 'GOAT', name: 'GOAT', percentage: 0.20, tier: 'emerging' },
-        { id: 'NANSEN', name: 'NANSEN', percentage: 0.20, tier: 'emerging' },
-        { id: 'FOGO', name: 'FOGO', percentage: 0.20, tier: 'emerging' },
-        { id: 'SYMP', name: 'SYMP', percentage: 0.20, tier: 'emerging' },
-        { id: 'PUFFP', name: 'PUFFP', percentage: 0.20, tier: 'emerging' },
-        { id: 'GTE', name: 'GTE', percentage: 0.13, tier: 'emerging' },
-        { id: 'BLACKMI', name: 'BLACKMI', percentage: 0.13, tier: 'emerging' },
-        { id: 'TOWNS', name: 'TOWNS', percentage: 0.13, tier: 'emerging' },
-        { id: 'MYR', name: 'MYR', percentage: 0.13, tier: 'emerging' },
-        { id: 'THRIVE', name: 'THRIVE', percentage: 0.13, tier: 'emerging' },
-        { id: 'AEGIS', name: 'AEGIS', percentage: 0.13, tier: 'emerging' },
-        { id: 'NUBIT', name: 'NUBIT', percentage: 0.13, tier: 'emerging' },
-        { id: 'BOB', name: 'BOB', percentage: 0.13, tier: 'emerging' },
-        { id: 'NOISE', name: 'NOISE', percentage: 0.13, tier: 'emerging' },
-        { id: 'SPHE', name: 'SPHE', percentage: 0.13, tier: 'emerging' },
-        { id: 'BUNGEE', name: 'BUNGEE', percentage: 0.13, tier: 'emerging' },
-        { id: 'MULTIPLI', name: 'MULTIPLI', percentage: 0.13, tier: 'emerging' },
-        { id: 'ASTER', name: 'ASTER', percentage: 0.13, tier: 'emerging' }
-      ]
+    } catch (error) {
+      console.error('❌ Error loading projects:', error.message);
+      return this.getFallbackProjects();
+    }
+  }
+
+  // 📊 Форматируем проекты для API
+  formatProjectsForAPI(projects) {
+    const formatted = {
+      top_tier: [],
+      high_tier: [],
+      mid_tier: [],
+      emerging_tier: []
     };
+
+    projects.forEach(project => {
+      const formattedProject = {
+        id: project.id || project.name,
+        name: project.name,
+        percentage: project.percentage,
+        tier: project.tier
+      };
+
+      switch (project.tier) {
+        case 'top':
+          formatted.top_tier.push(formattedProject);
+          break;
+        case 'high':
+          formatted.high_tier.push(formattedProject);
+          break;
+        case 'mid':
+          formatted.mid_tier.push(formattedProject);
+          break;
+        case 'emerging':
+          formatted.emerging_tier.push(formattedProject);
+          break;
+        default:
+          formatted.emerging_tier.push(formattedProject);
+      }
+    });
+
+    return formatted;
+  }
+
+  // 🔄 Fallback данные (если автообновление не работает)
+  getFallbackProjects() {
+    const fallbackData = [
+      { id: 'PUMP', name: 'PUMP', percentage: 7.64, tier: 'top' },
+      { id: 'ANOMA', name: 'ANOMA', percentage: 7.33, tier: 'top' },
+      { id: 'OPENLEDGER', name: 'OPENLEDGER', percentage: 5.30, tier: 'top' },
+      { id: 'MEMEX', name: 'MEMEX', percentage: 4.21, tier: 'top' },
+      { id: 'HANA', name: 'HANA', percentage: 3.90, tier: 'top' },
+      { id: 'M', name: 'M', percentage: 3.43, tier: 'top' },
+      { id: 'INFINIT', name: 'INFINIT', percentage: 3.20, tier: 'top' },
+      { id: 'WARD', name: 'WARD', percentage: 3.04, tier: 'top' },
+      { id: 'INFINEX', name: 'INFINEX', percentage: 2.88, tier: 'high' },
+      { id: 'CAMP', name: 'CAMP', percentage: 2.57, tier: 'high' },
+      { id: 'MITOSIS', name: 'MITOSIS', percentage: 2.49, tier: 'high' },
+      { id: 'SAPIEN', name: 'SAPIEN', percentage: 2.49, tier: 'high' },
+      { id: 'POLYMARKET', name: 'POLYMARKET', percentage: 2.34, tier: 'high' },
+      { id: 'KATANA', name: 'KATANA', percentage: 2.18, tier: 'high' },
+      { id: 'MIRA', name: 'MIRA', percentage: 2.03, tier: 'high' },
+      { id: 'BLESS', name: 'BLESS', percentage: 1.95, tier: 'high' },
+      { id: 'BOUNDLESS', name: 'BOUNDLESS', percentage: 1.79, tier: 'high' },
+      { id: 'HEMI', name: 'HEMI', percentage: 1.71, tier: 'high' },
+      { id: 'CALDERA', name: 'CALDERA', percentage: 1.71, tier: 'high' },
+      { id: 'MEGAETHERS', name: 'MEGAETHERS', percentage: 1.64, tier: 'mid' },
+      { id: 'PORTAL', name: 'PORTAL', percentage: 1.56, tier: 'mid' },
+      { id: 'SOMNIA', name: 'SOMNIA', percentage: 1.48, tier: 'mid' },
+      { id: 'OPENSEA', name: 'OPENSEA', percentage: 1.40, tier: 'mid' },
+      { id: 'VOOI', name: 'VOOI', percentage: 1.40, tier: 'mid' },
+      { id: 'THEORIQ', name: 'THEORIQ', percentage: 1.40, tier: 'mid' },
+      { id: 'NOVAS', name: 'NOVAS', percentage: 1.25, tier: 'mid' },
+      { id: 'MONAD', name: 'MONAD', percentage: 1.17, tier: 'mid' },
+      { id: 'ESPRESSO', name: 'ESPRESSO', percentage: 1.17, tier: 'mid' },
+      { id: 'SATLAYER', name: 'SATLAYER', percentage: 1.17, tier: 'mid' },
+      { id: 'TURTLES', name: 'TURTLES', percentage: 1.09, tier: 'mid' },
+      { id: 'OG', name: 'OG', percentage: 1.09, tier: 'mid' },
+      { id: 'SURF', name: 'SURF', percentage: 1.09, tier: 'mid' },
+      { id: 'SUCCINCT', name: 'SUCCINCT', percentage: 1.09, tier: 'mid' },
+      { id: 'LUMITERRA', name: 'LUMITERRA', percentage: 1.09, tier: 'mid' },
+      { id: 'NOYA', name: 'NOYA', percentage: 1.09, tier: 'mid' },
+      { id: 'GENOME', name: 'GENOME', percentage: 0.94, tier: 'emerging' },
+      { id: 'LOMBARD', name: 'LOMBARD', percentage: 0.94, tier: 'emerging' },
+      { id: 'ABSTRACT', name: 'ABSTRACT', percentage: 0.86, tier: 'emerging' },
+      { id: 'SOUL', name: 'SOUL', percentage: 0.86, tier: 'emerging' },
+      { id: 'OBJKT', name: 'OBJKT', percentage: 0.78, tier: 'emerging' },
+      { id: 'IRYS', name: 'IRYS', percentage: 0.78, tier: 'emerging' },
+      { id: 'PUFF', name: 'PUFF', percentage: 0.70, tier: 'emerging' },
+      { id: 'UNION', name: 'UNION', percentage: 0.70, tier: 'emerging' },
+      { id: 'BACKPACK', name: 'BACKPACK', percentage: 0.62, tier: 'emerging' },
+      { id: 'LINEA', name: 'LINEA', percentage: 0.62, tier: 'emerging' },
+      { id: 'GOAT', name: 'GOAT', percentage: 0.62, tier: 'emerging' },
+      { id: 'ETHOS', name: 'ETHOS', percentage: 0.47, tier: 'emerging' },
+      { id: 'RUJI', name: 'RUJI', percentage: 0.39, tier: 'emerging' },
+      { id: 'FARC', name: 'FARC', percentage: 0.39, tier: 'emerging' },
+      { id: 'SIDEKICK', name: 'SIDEKICK', percentage: 1.64, tier: 'emerging' }
+    ];
+
+    return this.formatProjectsForAPI(fallbackData);
   }
 
   getSearchModes() {
@@ -237,7 +273,7 @@ class KaitoDashboard {
       const searchValue = parsedUser.value;
       const searchBy = parsedUser.search_by;
       
-      const trendingData = this.api.getTrendingProjects();
+      const trendingData = await this.api.getTrendingProjects();
       
       const topCount = Math.floor(maxProjects * 0.4);
       const highCount = Math.floor(maxProjects * 0.35);
