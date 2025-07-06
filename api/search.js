@@ -1,9 +1,6 @@
 // Vercel serverless function - Main search API
 // Kaito Rank Tracker by @Over9725
 
-import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
-
 class KaitoAPI {
   constructor() {
     this.baseURL = 'https://hub.kaito.ai/api/v1';
@@ -13,7 +10,6 @@ class KaitoAPI {
       'Referer': 'https://kaito.ai/',
       'Origin': 'https://kaito.ai'
     };
-    this.projectsFilePath = join(process.cwd(), 'data', 'projects.json');
   }
 
   async getProjectLeaderboard(topicId, duration = '30d', retries = 2) {
@@ -124,32 +120,30 @@ class KaitoAPI {
     throw new Error('Invalid input format. Use: @username or Twitter User ID');
   }
 
-  // 🔄 НОВАЯ функция - загружает проекты из автообновляемого файла
+  // 🔄 Попытка загрузить обновленные проекты
   async getTrendingProjects() {
     try {
-      // Пытаемся загрузить из файла
-      if (existsSync(this.projectsFilePath)) {
-        const projectsData = JSON.parse(readFileSync(this.projectsFilePath, 'utf8'));
-        
-        // Проверяем возраст данных
-        const lastUpdate = new Date(projectsData.updated_at);
-        const now = new Date();
-        const hoursDiff = (now - lastUpdate) / (1000 * 60 * 60);
-        
-        if (hoursDiff < 48) { // Данные свежие (младше 48 часов)
-          console.log(`📦 Using cached projects data (${hoursDiff.toFixed(1)}h old)`);
+      // Пытаемся получить обновленные данные
+      const response = await fetch(new URL('/api/update-projects', 'https://kaito-rank-checker.vercel.app').toString(), {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (response.ok) {
+        const projectsData = await response.json();
+        if (projectsData && projectsData.projects && projectsData.projects.length > 10) {
+          console.log(`📦 Using auto-updated projects: ${projectsData.projects.length} projects`);
           return this.formatProjectsForAPI(projectsData.projects);
         }
       }
-      
-      // Если файла нет или данные старые - используем fallback
-      console.log('⚠️ Using fallback projects data');
-      return this.getFallbackProjects();
-      
     } catch (error) {
-      console.error('❌ Error loading projects:', error.message);
-      return this.getFallbackProjects();
+      console.log('⚠️ Auto-update failed, using fallback:', error.message);
     }
+
+    // Fallback на обновленные данные из скринов
+    console.log('📸 Using updated fallback projects (Top-50 from Kaito)');
+    return this.getFallbackProjects();
   }
 
   // 📊 Форматируем проекты для API
@@ -190,7 +184,7 @@ class KaitoAPI {
     return formatted;
   }
 
-  // 🔄 Fallback данные (если автообновление не работает)
+  // 🔄 ОБНОВЛЕННЫЕ данные из скринов Kaito (топ-50)
   getFallbackProjects() {
     const fallbackData = [
       { id: 'PUMP', name: 'PUMP', percentage: 7.64, tier: 'top' },
@@ -201,6 +195,7 @@ class KaitoAPI {
       { id: 'M', name: 'M', percentage: 3.43, tier: 'top' },
       { id: 'INFINIT', name: 'INFINIT', percentage: 3.20, tier: 'top' },
       { id: 'WARD', name: 'WARD', percentage: 3.04, tier: 'top' },
+      
       { id: 'INFINEX', name: 'INFINEX', percentage: 2.88, tier: 'high' },
       { id: 'CAMP', name: 'CAMP', percentage: 2.57, tier: 'high' },
       { id: 'MITOSIS', name: 'MITOSIS', percentage: 2.49, tier: 'high' },
@@ -212,6 +207,7 @@ class KaitoAPI {
       { id: 'BOUNDLESS', name: 'BOUNDLESS', percentage: 1.79, tier: 'high' },
       { id: 'HEMI', name: 'HEMI', percentage: 1.71, tier: 'high' },
       { id: 'CALDERA', name: 'CALDERA', percentage: 1.71, tier: 'high' },
+      
       { id: 'MEGAETHERS', name: 'MEGAETHERS', percentage: 1.64, tier: 'mid' },
       { id: 'PORTAL', name: 'PORTAL', percentage: 1.56, tier: 'mid' },
       { id: 'SOMNIA', name: 'SOMNIA', percentage: 1.48, tier: 'mid' },
@@ -228,6 +224,7 @@ class KaitoAPI {
       { id: 'SUCCINCT', name: 'SUCCINCT', percentage: 1.09, tier: 'mid' },
       { id: 'LUMITERRA', name: 'LUMITERRA', percentage: 1.09, tier: 'mid' },
       { id: 'NOYA', name: 'NOYA', percentage: 1.09, tier: 'mid' },
+      
       { id: 'GENOME', name: 'GENOME', percentage: 0.94, tier: 'emerging' },
       { id: 'LOMBARD', name: 'LOMBARD', percentage: 0.94, tier: 'emerging' },
       { id: 'ABSTRACT', name: 'ABSTRACT', percentage: 0.86, tier: 'emerging' },
@@ -252,8 +249,8 @@ class KaitoAPI {
     return {
       lightning: { name: 'Lightning', projects: 15, icon: '⚡' },
       standard: { name: 'Standard', projects: 35, icon: '🚀' },
-      complete: { name: 'Complete', projects: 65, icon: '🔥' },
-      ultimate: { name: 'Ultimate', projects: 80, icon: '💎' }
+      complete: { name: 'Complete', projects: 50, icon: '🔥' },
+      ultimate: { name: 'Ultimate', projects: 50, icon: '💎' }
     };
   }
 }
@@ -275,9 +272,9 @@ class KaitoDashboard {
       
       const trendingData = await this.api.getTrendingProjects();
       
-      const topCount = Math.floor(maxProjects * 0.4);
+      const topCount = Math.floor(maxProjects * 0.3);
       const highCount = Math.floor(maxProjects * 0.35);
-      const midCount = Math.floor(maxProjects * 0.2);
+      const midCount = Math.floor(maxProjects * 0.25);
       const emergingCount = maxProjects - topCount - highCount - midCount;
       
       const allProjects = [
