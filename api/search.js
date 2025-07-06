@@ -79,14 +79,19 @@ class KaitoAPI {
     return this.projects.slice(0, limits[mode] || 15);
   }
 
-  // ИСПРАВЛЕНО: добавлен async + улучшен обработчик ошибок
+  // ИСПРАВЛЕНО: увеличен таймаут + улучшен обработчик ошибок
   async getProjectLeaderboard(topicId) {
     try {
       const url = `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100&customized_community=customized&community_yaps=true`;
       
+      console.log(`[KaitoAPI] [${topicId}] Making request to: ${url}`);
+      
       // Создаем AbortController для таймаута
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 секунды таймаут
+      const timeoutId = setTimeout(() => {
+        console.log(`[KaitoAPI] [${topicId}] Request timeout after 5s`);
+        controller.abort();
+      }, 5000); // Увеличен таймаут до 5 секунд
       
       const response = await fetch(url, {
         method: 'GET',
@@ -96,23 +101,27 @@ class KaitoAPI {
       
       clearTimeout(timeoutId);
       
+      console.log(`[KaitoAPI] [${topicId}] Response status: ${response.status} ${response.statusText}`);
+      
       if (!response.ok) {
-        console.error(`[KaitoAPI] HTTP ${response.status} for ${topicId}: ${response.statusText}`);
+        console.error(`[KaitoAPI] [${topicId}] HTTP ERROR ${response.status}: ${response.statusText}`);
         
         // Проверяем если это 429 (Too Many Requests)
         if (response.status === 429) {
-          await this.delay(1000); // Ждем 1 секунду
-          return null;
+          console.log(`[KaitoAPI] [${topicId}] Rate limited, waiting 2s...`);
+          await this.delay(2000);
         }
         
         return null;
       }
       
       const text = await response.text();
-      if (!text) {
-        console.log(`[KaitoAPI] Empty response for ${topicId}`);
+      if (!text || text.length === 0) {
+        console.log(`[KaitoAPI] [${topicId}] Empty response received`);
         return null;
       }
+      
+      console.log(`[KaitoAPI] [${topicId}] Response length: ${text.length} chars`);
       
       const data = JSON.parse(text);
       if (Array.isArray(data)) {
@@ -128,9 +137,11 @@ class KaitoAPI {
       
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.error(`[KaitoAPI] Timeout for ${topicId}`);
+        console.error(`[KaitoAPI] [${topicId}] Request aborted (timeout)`);
+      } else if (error.message.includes('JSON')) {
+        console.error(`[KaitoAPI] [${topicId}] JSON parse error:`, error.message);
       } else {
-        console.error(`[KaitoAPI] Error for ${topicId}:`, error.message);
+        console.error(`[KaitoAPI] [${topicId}] Network error:`, error.message);
       }
       return null;
     }
@@ -142,14 +153,32 @@ class KaitoAPI {
   }
 
   findUserInLeaderboard(leaderboard, username) {
-    if (!leaderboard || !Array.isArray(leaderboard)) return null;
+    if (!leaderboard || !Array.isArray(leaderboard)) {
+      console.log(`[FindUser] Invalid leaderboard:`, typeof leaderboard);
+      return null;
+    }
     
     const cleanUsername = username.replace('@', '').toLowerCase();
+    console.log(`[FindUser] Searching for "${cleanUsername}" in ${leaderboard.length} users`);
     
-    return leaderboard.find(user => {
+    // Логируем первые 3 пользователя для отладки
+    if (leaderboard.length > 0) {
+      console.log(`[FindUser] Sample users:`, leaderboard.slice(0, 3).map(u => u?.username || 'no_username'));
+    }
+    
+    const found = leaderboard.find(user => {
       if (!user || !user.username) return false;
-      return user.username.toLowerCase() === cleanUsername;
+      const userLower = user.username.toLowerCase();
+      return userLower === cleanUsername;
     });
+    
+    if (found) {
+      console.log(`[FindUser] ✅ FOUND: ${found.username} at rank ${found.rank}`);
+    } else {
+      console.log(`[FindUser] ❌ NOT FOUND: ${cleanUsername}`);
+    }
+    
+    return found;
   }
 
   generateAnalysis(rankings) {
@@ -255,26 +284,36 @@ export default async function handler(req, res) {
     
     console.log(`[Handler] Starting search for ${cleanUsername} in ${projects.length} projects (${mode} mode)`);
     
-    // Ищем ПОСЛЕДОВАТЕЛЬНО, а не параллельно (чтобы избежать rate limits)
+    // Ищем ПОСЛЕДОВАТЕЛЬНО с большими задержками
     const rankings = [];
     let errorCount = 0;
     let successCount = 0;
+
+    console.log(`[Handler] Starting search for ${cleanUsername} in ${projects.length} projects`);
 
     for (let i = 0; i < projects.length; i++) {
       const project = projects[i];
       
       try {
-        console.log(`[Handler] Checking project ${i + 1}/${projects.length}: ${project.name}`);
+        console.log(`[Handler] [${i + 1}/${projects.length}] Checking project: ${project.name} (${project.id})`);
+        
+        // Задержка ПЕРЕД каждым запросом (кроме первого)
+        if (i > 0) {
+          console.log(`[Handler] Waiting 800ms before next request...`);
+          await api.delay(800);
+        }
         
         const leaderboard = await api.getProjectLeaderboard(project.id);
         
-        if (!leaderboard) {
+        if (!leaderboard || !Array.isArray(leaderboard)) {
           errorCount++;
-          console.log(`[Handler] No data for ${project.name}`);
+          console.log(`[Handler] [${project.name}] No valid data received`);
           continue;
         }
         
         successCount++;
+        console.log(`[Handler] [${project.name}] Got ${leaderboard.length} users, searching for ${cleanUsername}...`);
+        
         const userRank = api.findUserInLeaderboard(leaderboard, cleanUsername);
         
         if (userRank) {
@@ -293,20 +332,27 @@ export default async function handler(req, res) {
               total_users_checked: leaderboard.length
             });
             
-            console.log(`[Handler] Found ${cleanUsername} in ${project.name} at rank #${rankNumber}`);
+            console.log(`[Handler] ✅ FOUND! ${cleanUsername} in ${project.name} at rank #${rankNumber}`);
+          } else {
+            console.log(`[Handler] [${project.name}] ${cleanUsername} found but rank invalid: ${rankNumber}`);
           }
-        }
-        
-        // Небольшая задержка между запросами
-        if (i < projects.length - 1) {
-          await api.delay(200);
+        } else {
+          console.log(`[Handler] [${project.name}] ${cleanUsername} not found in top ${leaderboard.length}`);
         }
         
       } catch (error) {
         errorCount++;
-        console.error(`[Handler] Error processing ${project.name}:`, error.message);
+        console.error(`[Handler] [${project.name}] ERROR:`, error.message);
+        
+        // Если ошибка сети, ждем дольше
+        if (error.message.includes('fetch') || error.message.includes('timeout')) {
+          console.log(`[Handler] Network error, waiting 2s before continuing...`);
+          await api.delay(2000);
+        }
       }
     }
+
+    console.log(`[Handler] Search completed! Checked ${projects.length} projects, found in ${rankings.length}, errors: ${errorCount}`);
 
     const processingTime = Math.round((Date.now() - startTime) / 1000);
     const analysis = api.generateAnalysis(rankings);
