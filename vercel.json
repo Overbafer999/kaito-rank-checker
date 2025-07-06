@@ -1,5 +1,19 @@
 {
   "rewrites": [
     { "source": "/", "destination": "/api/index" }
+  ],
+  "functions": {
+    "api/update-projects.js": {
+      "maxDuration": 30
+    },
+    "api/search.js": {
+      "maxDuration": 25
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/update-projects",
+      "schedule": "0 6 * * *"
+    }
   ]
 }
