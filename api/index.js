@@ -569,11 +569,11 @@ module.exports = function handler(req, res) {
             faqTitle: "How it works?",
             faqDesc: "Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 50+ trending crypto projects. Results are cached for better performance.",
             modes: [
-              {icon:"⚡",name:"Lightning",desc:"15 projects"},
-              {icon:"🚀",name:"Standard",desc:"35 projects"},
-              {icon:"🔥",name:"Complete",desc:"50 projects"},
-              {icon:"💎",name:"Ultimate",desc:"50 projects"},
-            ],
+  {icon:"⚡",name:"Lightning",desc:"15 projects"},
+  {icon:"🚀",name:"Standard",desc:"30 projects"},
+  {icon:"🔥",name:"Complete",desc:"45 projects"},
+  {icon:"💎",name:"Ultimate",desc:"50 projects"},
+],
             footer: "Made by OveR // Kaito Community"
           },
           RU: {
@@ -585,11 +585,11 @@ module.exports = function handler(req, res) {
             faqTitle: "Как это работает?",
             faqDesc: "Введи свой Twitter username, выбери режим поиска и начни поиск. Сервис покажет твои TOP-позиции по 50+ трендовым крипто-проектам. Результаты кешируются для лучшей производительности.",
             modes: [
-              {icon:"⚡",name:"Быстрый",desc:"15 проектов"},
-              {icon:"🚀",name:"Стандарт",desc:"35 проектов"},
-              {icon:"🔥",name:"Полный",desc:"50 проектов"},
-              {icon:"💎",name:"Ultimate",desc:"50 проектов"},
-            ],
+  {icon:"⚡",name:"Быстрый",desc:"15 проектов"},
+  {icon:"🚀",name:"Стандарт",desc:"30 проектов"},
+  {icon:"🔥",name:"Полный",desc:"45 проектов"},
+  {icon:"💎",name:"Ultimate",desc:"50 проектов"},
+],
             footer: "Сделано OveR // Kaito Community"
           }
         };
