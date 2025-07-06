@@ -5,10 +5,14 @@ class KaitoAPI {
   constructor() {
     this.baseURL = 'https://hub.kaito.ai/api/v1';
     this.headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept': 'application/json',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
       'Referer': 'https://kaito.ai/',
-      'Origin': 'https://kaito.ai'
+      'Origin': 'https://kaito.ai',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
     };
     
     this.projects = [
@@ -75,30 +79,67 @@ class KaitoAPI {
     return this.projects.slice(0, limits[mode] || 15);
   }
 
-  // БЫСТРЫЙ запрос к Kaito API
-  async getProjectLeaderboard(topicId) {  // ← НЕ ХВАТАЕТ "asy"
-  try {
-    const url = `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100&customized_community=customized&community_yaps=true`;
-    
-    const response = await fetch(url, {
-      headers: this.headers,
-      signal: AbortSignal.timeout(2000)
-    });
-    
-    if (!response.ok) {
-      console.error(`[KaitoAPI] HTTP error! ${response.status} for topicId: ${topicId}`);
+  // ИСПРАВЛЕНО: добавлен async + улучшен обработчик ошибок
+  async getProjectLeaderboard(topicId) {
+    try {
+      const url = `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100&customized_community=customized&community_yaps=true`;
+      
+      // Создаем AbortController для таймаута
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 секунды таймаут
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.headers,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        console.error(`[KaitoAPI] HTTP ${response.status} for ${topicId}: ${response.statusText}`);
+        
+        // Проверяем если это 429 (Too Many Requests)
+        if (response.status === 429) {
+          await this.delay(1000); // Ждем 1 секунду
+          return null;
+        }
+        
+        return null;
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        console.log(`[KaitoAPI] Empty response for ${topicId}`);
+        return null;
+      }
+      
+      const data = JSON.parse(text);
+      if (Array.isArray(data)) {
+        console.log(`[KaitoAPI] [${topicId}] Got array, ${data.length} items`);
+        return data;
+      }
+      if (data && Array.isArray(data.data)) {
+        console.log(`[KaitoAPI] [${topicId}] Got object with .data array, ${data.data.length} items`);
+        return data.data;
+      }
+      console.log(`[KaitoAPI] [${topicId}] Response not array nor .data array:`, typeof data, data);
+      return null;
+      
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.error(`[KaitoAPI] Timeout for ${topicId}`);
+      } else {
+        console.error(`[KaitoAPI] Error for ${topicId}:`, error.message);
+      }
       return null;
     }
-    
-    const data = await response.json();
-    console.log(`[KaitoAPI] Response for ${topicId}:`, JSON.stringify(data).slice(0, 300));
-    return Array.isArray(data) ? data : null;
-    
-  } catch (error) {
-    console.error(`[KaitoAPI] FETCH FAIL for ${topicId}:`, error.message);
-    return null;
   }
-}
+
+  // Добавляем функцию задержки
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
   findUserInLeaderboard(leaderboard, username) {
     if (!leaderboard || !Array.isArray(leaderboard)) return null;
@@ -106,7 +147,7 @@ class KaitoAPI {
     const cleanUsername = username.replace('@', '').toLowerCase();
     
     return leaderboard.find(user => {
-      if (!user.username) return false;
+      if (!user || !user.username) return false;
       return user.username.toLowerCase() === cleanUsername;
     });
   }
@@ -122,7 +163,9 @@ class KaitoAPI {
       };
     }
 
-    const ranks = rankings.map(r => parseInt(r.rank));
+    const ranks = rankings.map(r => parseInt(r.rank)).filter(r => !isNaN(r));
+    if (ranks.length === 0) return this.generateAnalysis([]);
+    
     const bestRank = Math.min(...ranks);
     let performance_level = 'good';
     const recommendations = [];
@@ -161,6 +204,7 @@ class KaitoAPI {
 }
 
 export default async function handler(req, res) {
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -180,10 +224,28 @@ export default async function handler(req, res) {
   try {
     const { username, mode = 'standard' } = req.body;
     
-    if (!username) {
+    // Валидация username
+    if (!username || typeof username !== 'string') {
       return res.status(400).json({
         success: false,
-        error: 'Username is required'
+        error: 'Username is required and must be a string'
+      });
+    }
+
+    const cleanUsername = username.replace('@', '').trim();
+    if (!cleanUsername || cleanUsername.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username cannot be empty'
+      });
+    }
+
+    // Валидация режима
+    const validModes = ['lightning', 'standard', 'complete', 'ultimate'];
+    if (!validModes.includes(mode)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid mode. Must be one of: ${validModes.join(', ')}`
       });
     }
 
@@ -191,66 +253,82 @@ export default async function handler(req, res) {
     const api = new KaitoAPI();
     const projects = api.getProjects(mode);
     
-    // === ПАРАЛЛЕЛЬНО ИЩЕМ ВО ВСЕХ ПРОЕКТАХ ===
-    const leaderboardPromises = projects.map(async (project) => {
+    console.log(`[Handler] Starting search for ${cleanUsername} in ${projects.length} projects (${mode} mode)`);
+    
+    // Ищем ПОСЛЕДОВАТЕЛЬНО, а не параллельно (чтобы избежать rate limits)
+    const rankings = [];
+    let errorCount = 0;
+    let successCount = 0;
+
+    for (let i = 0; i < projects.length; i++) {
+      const project = projects[i];
+      
       try {
-        const leaderboard = await api.getProjectLeaderboard(project.id);
-        if (!leaderboard) return { project, error: 'No data' };
+        console.log(`[Handler] Checking project ${i + 1}/${projects.length}: ${project.name}`);
         
-        const userRank = api.findUserInLeaderboard(leaderboard, username);
+        const leaderboard = await api.getProjectLeaderboard(project.id);
+        
+        if (!leaderboard) {
+          errorCount++;
+          console.log(`[Handler] No data for ${project.name}`);
+          continue;
+        }
+        
+        successCount++;
+        const userRank = api.findUserInLeaderboard(leaderboard, cleanUsername);
+        
         if (userRank) {
-          return {
-            project,
-            userRank: {
+          const rankNumber = parseInt(userRank.rank) || 
+            (leaderboard.findIndex(u => u.username && 
+              u.username.toLowerCase() === cleanUsername.toLowerCase()) + 1);
+          
+          if (rankNumber > 0 && rankNumber <= 100) {
+            rankings.push({
               project: project.name,
-              rank: parseInt(userRank.rank) || (leaderboard.findIndex(u => u.username && u.username.toLowerCase() === username.replace('@', '').toLowerCase()) + 1),
+              rank: rankNumber,
               tier: project.tier,
               trending_percentage: project.percentage,
               mindshare: parseFloat(userRank.mindshare) || 0,
               change_7d: parseFloat(userRank.change_7d_ratio) || 0,
               total_users_checked: leaderboard.length
-            }
-          };
+            });
+            
+            console.log(`[Handler] Found ${cleanUsername} in ${project.name} at rank #${rankNumber}`);
+          }
         }
-        return { project, userRank: null };
+        
+        // Небольшая задержка между запросами
+        if (i < projects.length - 1) {
+          await api.delay(200);
+        }
+        
       } catch (error) {
-        // Логируем ошибку для отладки, возвращаем инфу об ошибке
-        console.error(`Error for project ${project.name}:`, error);
-        return { project, error: error.message };
-      }
-    });
-
-    const leaderboardResults = await Promise.allSettled(leaderboardPromises);
-    const rankings = [];
-    let errorCount = 0;
-
-    leaderboardResults.forEach(result => {
-      if (result.status === 'fulfilled') {
-        const { userRank, error } = result.value;
-        if (userRank) rankings.push(userRank);
-        if (error) errorCount++;
-      } else {
         errorCount++;
-        console.error('Unhandled promise error:', result.reason);
+        console.error(`[Handler] Error processing ${project.name}:`, error.message);
       }
-    });
+    }
 
     const processingTime = Math.round((Date.now() - startTime) / 1000);
     const analysis = api.generateAnalysis(rankings);
+
+    console.log(`[Handler] Search complete: ${rankings.length} found, ${errorCount} errors, ${successCount} successful`);
 
     const response = {
       success: true,
       data: {
         user: {
           input: username,
-          username: username.replace('@', ''),
+          username: cleanUsername,
           type: 'username'
         },
-        mode: { name: mode, projects: projects.length },
+        mode: { 
+          name: mode, 
+          projects: projects.length 
+        },
         stats: {
           total_projects: projects.length,
           found_in: rankings.length,
-          not_found: projects.length - rankings.length - errorCount,
+          not_found: successCount - rankings.length,
           errors: errorCount,
           processing_time: processingTime
         },
@@ -262,11 +340,11 @@ export default async function handler(req, res) {
     res.status(200).json(response);
 
   } catch (error) {
-    // Лог для продакшена, чтобы понять где рушится
-    console.error('FATAL API ERROR:', error, req.body);
+    console.error('[Handler] FATAL ERROR:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: `Server error: ${error.message}`,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
