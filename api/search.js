@@ -121,7 +121,7 @@ class KaitoAPI {
   }
 
   // 🔄 Попытка загрузить обновленные проекты
-  async getTrendingProjects() {
+  getTrendingProjects() {
   try {
     console.log('📸 Using updated fallback projects (Top-50 from Kaito)');
     return this.getFallbackProjects();
@@ -257,7 +257,7 @@ class KaitoDashboard {
       const searchValue = parsedUser.value;
       const searchBy = parsedUser.search_by;
       
-      const trendingData = await this.api.getTrendingProjects();
+      const trendingData = this.api.getTrendingProjects();
       
       const topCount = Math.floor(maxProjects * 0.3);
       const highCount = Math.floor(maxProjects * 0.35);
