@@ -79,72 +79,116 @@ class KaitoAPI {
     return this.projects.slice(0, limits[mode] || 15);
   }
 
-  // ИСПРАВЛЕНО: увеличен таймаут + улучшен обработчик ошибок
+  // ИСПРАВЛЕНО: добавлена отладка и альтернативные URL
   async getProjectLeaderboard(topicId) {
-    try {
-      const url = `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100&customized_community=customized&community_yaps=true`;
+    // Попробуем разные варианты URL
+    const urls = [
+      `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100&customized_community=customized&community_yaps=true`,
+      `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100`,
+      `https://hub.kaito.ai/api/v1/kol/mindshare/leaderboard?topic_id=${topicId}&duration=30d&limit=100`,
+      `https://kaito.ai/api/v1/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100`
+    ];
+    
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+      console.log(`[KaitoAPI] [${topicId}] Trying URL ${i + 1}/${urls.length}: ${url}`);
       
-      console.log(`[KaitoAPI] [${topicId}] Making request to: ${url}`);
-      
-      // Создаем AbortController для таймаута
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        console.log(`[KaitoAPI] [${topicId}] Request timeout after 5s`);
-        controller.abort();
-      }, 5000); // Увеличен таймаут до 5 секунд
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: this.headers,
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      console.log(`[KaitoAPI] [${topicId}] Response status: ${response.status} ${response.statusText}`);
-      
-      if (!response.ok) {
-        console.error(`[KaitoAPI] [${topicId}] HTTP ERROR ${response.status}: ${response.statusText}`);
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          console.log(`[KaitoAPI] [${topicId}] Request timeout after 5s`);
+          controller.abort();
+        }, 5000);
         
-        // Проверяем если это 429 (Too Many Requests)
-        if (response.status === 429) {
-          console.log(`[KaitoAPI] [${topicId}] Rate limited, waiting 2s...`);
-          await this.delay(2000);
+        // Попробуем разные наборы headers
+        const headerSets = [
+          this.headers,
+          {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json'
+          },
+          {
+            'Accept': 'application/json',
+            'Accept-Language': 'en-US,en;q=0.9'
+          }
+        ];
+        
+        for (let h = 0; h < headerSets.length; h++) {
+          try {
+            console.log(`[KaitoAPI] [${topicId}] Trying headers set ${h + 1}`);
+            
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: headerSets[h],
+              signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            console.log(`[KaitoAPI] [${topicId}] Response status: ${response.status} ${response.statusText}`);
+            console.log(`[KaitoAPI] [${topicId}] Response headers:`, Object.fromEntries(response.headers.entries()));
+            
+            if (response.status === 500) {
+              const errorText = await response.text();
+              console.log(`[KaitoAPI] [${topicId}] 500 Error body:`, errorText.slice(0, 500));
+              continue; // Попробуем следующий набор headers или URL
+            }
+            
+            if (!response.ok) {
+              console.error(`[KaitoAPI] [${topicId}] HTTP ERROR ${response.status}: ${response.statusText}`);
+              
+              if (response.status === 429) {
+                console.log(`[KaitoAPI] [${topicId}] Rate limited, waiting 2s...`);
+                await this.delay(2000);
+                continue;
+              }
+              
+              if (response.status === 403) {
+                console.log(`[KaitoAPI] [${topicId}] Forbidden - trying next headers set`);
+                continue;
+              }
+              
+              continue;
+            }
+            
+            const text = await response.text();
+            if (!text || text.length === 0) {
+              console.log(`[KaitoAPI] [${topicId}] Empty response received`);
+              continue;
+            }
+            
+            console.log(`[KaitoAPI] [${topicId}] Response length: ${text.length} chars`);
+            console.log(`[KaitoAPI] [${topicId}] Response preview:`, text.slice(0, 200));
+            
+            const data = JSON.parse(text);
+            if (Array.isArray(data)) {
+              console.log(`[KaitoAPI] [${topicId}] ✅ SUCCESS! Got array, ${data.length} items`);
+              return data;
+            }
+            if (data && Array.isArray(data.data)) {
+              console.log(`[KaitoAPI] [${topicId}] ✅ SUCCESS! Got object with .data array, ${data.data.length} items`);
+              return data.data;
+            }
+            console.log(`[KaitoAPI] [${topicId}] Response not array nor .data array:`, typeof data, Object.keys(data || {}));
+            
+          } catch (headerError) {
+            console.log(`[KaitoAPI] [${topicId}] Headers set ${h + 1} failed:`, headerError.message);
+            continue;
+          }
         }
         
-        return null;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          console.error(`[KaitoAPI] [${topicId}] Request aborted (timeout)`);
+        } else {
+          console.error(`[KaitoAPI] [${topicId}] Network error:`, error.message);
+        }
+        continue;
       }
-      
-      const text = await response.text();
-      if (!text || text.length === 0) {
-        console.log(`[KaitoAPI] [${topicId}] Empty response received`);
-        return null;
-      }
-      
-      console.log(`[KaitoAPI] [${topicId}] Response length: ${text.length} chars`);
-      
-      const data = JSON.parse(text);
-      if (Array.isArray(data)) {
-        console.log(`[KaitoAPI] [${topicId}] Got array, ${data.length} items`);
-        return data;
-      }
-      if (data && Array.isArray(data.data)) {
-        console.log(`[KaitoAPI] [${topicId}] Got object with .data array, ${data.data.length} items`);
-        return data.data;
-      }
-      console.log(`[KaitoAPI] [${topicId}] Response not array nor .data array:`, typeof data, data);
-      return null;
-      
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        console.error(`[KaitoAPI] [${topicId}] Request aborted (timeout)`);
-      } else if (error.message.includes('JSON')) {
-        console.error(`[KaitoAPI] [${topicId}] JSON parse error:`, error.message);
-      } else {
-        console.error(`[KaitoAPI] [${topicId}] Network error:`, error.message);
-      }
-      return null;
     }
+    
+    console.log(`[KaitoAPI] [${topicId}] ❌ All attempts failed`);
+    return null;
   }
 
   // Добавляем функцию задержки
