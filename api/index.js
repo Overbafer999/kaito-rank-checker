@@ -729,3 +729,4 @@ module.exports = function handler(req, res) {
 </body>
 </html>
   `);
+}
