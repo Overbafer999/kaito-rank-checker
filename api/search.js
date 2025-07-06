@@ -3,6 +3,14 @@
 
 class KaitoAPI {
   constructor() {
+    this.baseURL = 'https://hub.kaito.ai/api/v1';
+    this.headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Accept': 'application/json',
+      'Referer': 'https://kaito.ai/',
+      'Origin': 'https://kaito.ai'
+    };
+    
     this.projects = [
       { id: 'PUMP', name: 'PUMP', percentage: 7.64, tier: 'top' },
       { id: 'ANOMA', name: 'ANOMA', percentage: 7.33, tier: 'top' },
@@ -67,27 +75,36 @@ class KaitoAPI {
     return this.projects.slice(0, limits[mode] || 15);
   }
 
-  // Симулируем поиск пользователя
-  simulateUserSearch(username, projects) {
-    // Для демо - случайно находим пользователя в некоторых проектах
-    const foundProjects = [];
-    
-    // Добавляем небольшой шанс найти рейтинг
-    projects.forEach(project => {
-      if (Math.random() < 0.1) { // 10% шанс найти
-        foundProjects.push({
-          project: project.name,
-          rank: Math.floor(Math.random() * 100) + 1,
-          tier: project.tier,
-          trending_percentage: project.percentage,
-          mindshare: (Math.random() * 10).toFixed(2),
-          change_7d: (Math.random() * 20 - 10).toFixed(1),
-          total_users_checked: Math.floor(Math.random() * 500) + 100
-        });
-      }
-    });
+  // БЫСТРЫЙ запрос к Kaito API
+  async getProjectLeaderboard(topicId) {
+    try {
+      const url = `${this.baseURL}/gateway/ai/kol/mindshare/top-leaderboard?duration=30d&topic_id=${topicId}&top_n=100&customized_community=customized&community_yaps=true`;
+      
+      const response = await fetch(url, {
+        headers: this.headers,
+        signal: AbortSignal.timeout(2000) // 2 секунды таймаут
+      });
+      
+      if (!response.ok) return null;
+      
+      const data = await response.json();
+      return Array.isArray(data) ? data : null;
+      
+    } catch (error) {
+      console.error(`Error fetching ${topicId}:`, error.message);
+      return null; // Если ошибка - просто пропускаем проект
+    }
+  }
 
-    return foundProjects.sort((a, b) => a.rank - b.rank);
+  findUserInLeaderboard(leaderboard, username) {
+    if (!leaderboard || !Array.isArray(leaderboard)) return null;
+    
+    const cleanUsername = username.replace('@', '').toLowerCase();
+    
+    return leaderboard.find(user => {
+      if (!user.username) return false;
+      return user.username.toLowerCase() === cleanUsername;
+    });
   }
 
   generateAnalysis(rankings) {
@@ -96,24 +113,39 @@ class KaitoAPI {
         performance_level: 'not_found',
         description: 'Not found in any trending projects',
         best_rank: null,
-        recommendations: ['Try different search terms', 'Check if user is active on Kaito'],
+        recommendations: ['Try different timeframe', 'Check if user is active on Kaito'],
         tier_distribution: { top: 0, high: 0, mid: 0, emerging: 0 }
       };
     }
 
-    const bestRank = Math.min(...rankings.map(r => r.rank));
+    const ranks = rankings.map(r => parseInt(r.rank));
+    const bestRank = Math.min(...ranks);
     let performance_level = 'good';
+    const recommendations = [];
     
-    if (bestRank <= 20) performance_level = 'elite';
-    else if (bestRank <= 50) performance_level = 'strong';
-    else if (bestRank <= 100) performance_level = 'good';
-    else performance_level = 'emerging';
+    if (bestRank <= 20) {
+      performance_level = 'elite';
+      recommendations.push('Focus on maintaining top positions');
+      recommendations.push('Consider expanding to similar tier projects');
+    } else if (bestRank <= 50) {
+      performance_level = 'strong';  
+      recommendations.push('Work towards breaking into top 20');
+      recommendations.push('Increase engagement in current projects');
+    } else if (bestRank <= 100) {
+      performance_level = 'good';
+      recommendations.push('Focus on climbing higher in current projects');
+      recommendations.push('Maintain consistent activity');
+    } else {
+      performance_level = 'emerging';
+      recommendations.push('Continue building engagement');
+      recommendations.push('Focus on increasing activity');
+    }
 
     return {
       performance_level,
       description: `Best rank: #${bestRank}`,
       best_rank: bestRank,
-      recommendations: ['Keep engaging with crypto community', 'Focus on quality content'],
+      recommendations,
       tier_distribution: {
         top: rankings.filter(r => r.tier === 'top').length,
         high: rankings.filter(r => r.tier === 'high').length,
@@ -128,18 +160,19 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
+  res.setHeader('Content-Type', 'application/json');
+  
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-
+  
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
       error: 'Method not allowed. Use POST.'
     });
   }
-
+  
   try {
     const { username, mode = 'standard' } = req.body;
     
@@ -150,9 +183,55 @@ export default async function handler(req, res) {
       });
     }
 
+    const startTime = Date.now();
     const api = new KaitoAPI();
     const projects = api.getProjects(mode);
-    const rankings = api.simulateUserSearch(username, projects);
+    
+    // === ПАРАЛЛЕЛЬНО ИЩЕМ ВО ВСЕХ ПРОЕКТАХ ===
+    const leaderboardPromises = projects.map(async (project) => {
+      try {
+        const leaderboard = await api.getProjectLeaderboard(project.id);
+        if (!leaderboard) return { project, error: 'No data' };
+        
+        const userRank = api.findUserInLeaderboard(leaderboard, username);
+        if (userRank) {
+          return {
+            project,
+            userRank: {
+              project: project.name,
+              rank: parseInt(userRank.rank) || (leaderboard.findIndex(u => u.username && u.username.toLowerCase() === username.replace('@', '').toLowerCase()) + 1),
+              tier: project.tier,
+              trending_percentage: project.percentage,
+              mindshare: parseFloat(userRank.mindshare) || 0,
+              change_7d: parseFloat(userRank.change_7d_ratio) || 0,
+              total_users_checked: leaderboard.length
+            }
+          };
+        }
+        return { project, userRank: null };
+      } catch (error) {
+        // Логируем ошибку для отладки, возвращаем инфу об ошибке
+        console.error(`Error for project ${project.name}:`, error);
+        return { project, error: error.message };
+      }
+    });
+
+    const leaderboardResults = await Promise.allSettled(leaderboardPromises);
+    const rankings = [];
+    let errorCount = 0;
+
+    leaderboardResults.forEach(result => {
+      if (result.status === 'fulfilled') {
+        const { userRank, error } = result.value;
+        if (userRank) rankings.push(userRank);
+        if (error) errorCount++;
+      } else {
+        errorCount++;
+        console.error('Unhandled promise error:', result.reason);
+      }
+    });
+
+    const processingTime = Math.round((Date.now() - startTime) / 1000);
     const analysis = api.generateAnalysis(rankings);
 
     const response = {
@@ -167,11 +246,11 @@ export default async function handler(req, res) {
         stats: {
           total_projects: projects.length,
           found_in: rankings.length,
-          not_found: projects.length - rankings.length,
-          errors: 0,
-          processing_time: Math.floor(Math.random() * 5) + 2
+          not_found: projects.length - rankings.length - errorCount,
+          errors: errorCount,
+          processing_time: processingTime
         },
-        rankings,
+        rankings: rankings.sort((a, b) => a.rank - b.rank),
         analysis
       }
     };
@@ -179,6 +258,8 @@ export default async function handler(req, res) {
     res.status(200).json(response);
 
   } catch (error) {
+    // Лог для продакшена, чтобы понять где рушится
+    console.error('FATAL API ERROR:', error, req.body);
     res.status(500).json({
       success: false,
       error: error.message
