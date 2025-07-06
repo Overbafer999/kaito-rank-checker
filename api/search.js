@@ -30,7 +30,7 @@ class KaitoAPI {
           
           const response = await fetch(url, {
             headers: this.headers,
-            signal: AbortSignal.timeout(1000)
+            signal: AbortSignal.timeout(300)
           });
           
           if (!response.ok) {
@@ -234,10 +234,10 @@ class KaitoAPI {
 
   getSearchModes() {
     return {
-      lightning: { name: 'Lightning', projects: 15, icon: '⚡' },
-      standard: { name: 'Standard', projects: 35, icon: '🚀' },
-      complete: { name: 'Complete', projects: 50, icon: '🔥' },
-      ultimate: { name: 'Ultimate', projects: 50, icon: '💎' }
+    lightning: { name: 'Lightning', projects: 15, icon: '⚡' },
+    standard: { name: 'Standard', projects: 30, icon: '🚀' },
+    complete: { name: 'Complete', projects: 45, icon: '🔥' },
+    ultimate: { name: 'Ultimate', projects: 50, icon: '💎' }
     };
   }
 }
