@@ -131,21 +131,7 @@ class KaitoAPI {
   }
 }
 
-      if (response.ok) {
-        const projectsData = await response.json();
-        if (projectsData && projectsData.projects && projectsData.projects.length > 10) {
-          console.log(`📦 Using auto-updated projects: ${projectsData.projects.length} projects`);
-          return this.formatProjectsForAPI(projectsData.projects);
-        }
-      }
-    } catch (error) {
-      console.log('⚠️ Auto-update failed, using fallback:', error.message);
-    }
-
-    // Fallback на обновленные данные из скринов
-    console.log('📸 Using updated fallback projects (Top-50 from Kaito)');
-    return this.getFallbackProjects();
-  }
+  
 
   // 📊 Форматируем проекты для API
   formatProjectsForAPI(projects) {
