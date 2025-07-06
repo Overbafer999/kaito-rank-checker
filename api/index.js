@@ -432,8 +432,8 @@ module.exports = function handler(req, res) {
       >
       <div class="modes-list" id="modesList">
         <button class="mode-btn selected" data-mode="lightning" type="button">⚡ Lightning <span>(15)</span></button>
-        <button class="mode-btn" data-mode="standard" type="button">🚀 Standard <span>(35)</span></button>
-        <button class="mode-btn" data-mode="complete" type="button">🔥 Complete <span>(50)</span></button>
+        <button class="mode-btn" data-mode="standard" type="button">🚀 Standard <span>(30)</span></button>
+        <button class="mode-btn" data-mode="complete" type="button">🔥 Complete <span>(45)</span></button>
         <button class="mode-btn" data-mode="ultimate" type="button">💎 Ultimate <span>(50)</span></button>
       </div>
       <button type="submit" class="btn-shimmer" id="searchBtn">START SEARCH</button>
@@ -651,10 +651,10 @@ module.exports = function handler(req, res) {
       showLoadingWithProgress() {
         const resultsDiv = document.getElementById('results');
         const modeData = {
-          lightning: { projects: 15, time: 8 },
-          standard: { projects: 35, time: 20 },
-          complete: { projects: 50, time: 35 },
-          ultimate: { projects: 50, time: 35 }
+          lightning: { projects: 15, time: 5 },
+          standard: { projects: 30, time: 8 },
+          complete: { projects: 45, time: 12 },
+         ultimate: { projects: 50, time: 15 }
         };
 
         const currentMode = modeData[this.selectedMode];
