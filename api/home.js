@@ -409,6 +409,35 @@ module.exports = function handler(req, res) {
       .faq-popup { left: 10px; top: 51px; padding: 0.8em 0.85em 0.9em 0.95em; }
       .lang-switch { right: 8px; top: 10px; font-size:1.01rem;}
     }
+.kaito-gradient {
+  font-weight: 800;
+  font-size: 2.8rem;
+  line-height: 1.13;
+  background: linear-gradient(90deg,#6dc6ff 5%, #b683ff 50%, #55fff8 95%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  animation: shimmerText 4s linear infinite;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.7em;
+  margin-top: 0.25em;
+  display: block;
+  text-align: left;
+}
+@keyframes shimmerText {
+  0% {background-position: 0%;}
+  100% {background-position: 200%;}
+}
+.kaito-subtitle,
+.kaito-sub2,
+.desc-light {
+  color: #e6f4ff !important;
+  text-shadow: 0 0 8px #111a, 0 0 1px #82eaff7a;
+  opacity: 0.94;
+}
+
   </style>
 </head>
 <body>
@@ -442,13 +471,14 @@ module.exports = function handler(req, res) {
         Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 50+ trending crypto projects. Results are cached for better performance.
       </div>
     </div>
-    <h1 id="mainTitle">🎯 Kaito Rank Tracker</h1>
-    <div class="kaito-subtitle" id="mainSubtitle">
-      Find your rankings across 50+ TOP trending crypto projects
-    </div>
-    <div class="kaito-sub2" id="mainSub2">
-      Updated daily. Real Kaito data. Better insights.
-    </div>
+    <span class="kaito-gradient">Kaito Rank Tracker</span>
+<div class="kaito-subtitle desc-light" id="mainSubtitle">
+  Find your rankings across 50+ TOP trending crypto projects
+</div>
+<div class="kaito-sub2 desc-light" id="mainSub2">
+  Updated daily. Real Kaito data. Better insights.
+</div>
+
     <form class="search-form" id="searchForm" autocomplete="off">
       <input 
         type="text" 
