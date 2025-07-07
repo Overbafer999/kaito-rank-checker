@@ -198,12 +198,18 @@ class EnhancedKaitoAPI {
       return null;
     }
 
-    // Advanced positioning algorithm based on user activity metrics
-    const userActivity = userStats.yaps_l30d || 0;
-    console.log(`[Ranking] User activity (30d): ${userActivity}`);
+    // Try multiple activity metrics (not just 30d)
+    const userActivity = userStats.yaps_l30d || userStats.yaps_l7d || userStats.yaps_l3m || userStats.yaps_all || 0;
+    console.log(`[Ranking] User stats:`, {
+      yaps_l30d: userStats.yaps_l30d,
+      yaps_l7d: userStats.yaps_l7d, 
+      yaps_l3m: userStats.yaps_l3m,
+      yaps_all: userStats.yaps_all,
+      selected: userActivity
+    });
     
     if (userActivity <= 0) {
-      console.log(`[Ranking] User has no activity in 30d period`);
+      console.log(`[Ranking] User has no activity in any period`);
       return null;
     }
     
