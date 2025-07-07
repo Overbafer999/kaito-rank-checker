@@ -115,7 +115,7 @@ class EnhancedKaitoAPI {
     this.cacheExpiry = 30 * 60 * 1000; // 30 минут
   }
 
-  // Multi-source user data retrieval
+  // Multi-source user data retrieval - ИСПРАВЛЕНО
   async getUserData(username) {
     try {
       // Try aggregator source for user statistics
@@ -136,12 +136,32 @@ class EnhancedKaitoAPI {
       const data = await response.json();
       console.log(`[DataSource] Analytics response received`);
       
+      // ИСПРАВЛЕНО: правильно обрабатываем массив данных
       const userData = data.data || data || null;
-      console.log(`[DataSource] Processed analytics data:`, JSON.stringify(userData));
+      console.log(`[DataSource] Raw user data:`, JSON.stringify(userData));
       
-      if (userData) {
-        console.log(`[DataSource] User analytics data processed successfully`);
-        return userData;
+      if (userData && Array.isArray(userData)) {
+        // Преобразуем массив рейтингов в удобный формат
+        const processedData = {
+          rankings: userData,
+          // Создаем карту проектов для быстрого поиска
+          projectMap: {}
+        };
+        
+        // Группируем рейтинги по проектам
+        userData.forEach(item => {
+          if (!processedData.projectMap[item.topic_id]) {
+            processedData.projectMap[item.topic_id] = {};
+          }
+          processedData.projectMap[item.topic_id][item.duration] = {
+            rank: item.rank,
+            mindshare: item.mindshare,
+            updatedAt: item.updatedAt
+          };
+        });
+        
+        console.log(`[DataSource] User analytics data processed successfully for ${userData.length} entries`);
+        return processedData;
       } else {
         console.log(`[DataSource] No analytics data available for user`);
         return null;
@@ -198,81 +218,41 @@ class EnhancedKaitoAPI {
     }
   }
 
-  // Advanced ranking calculation algorithm
-  calculateUserRanking(rankingData, userStats) {
+  // ИСПРАВЛЕННЫЙ алгоритм расчета рейтинга
+  calculateUserRanking(rankingData, userStats, projectTicker) {
     if (!rankingData || !Array.isArray(rankingData) || !userStats) {
       console.log(`[Ranking] Invalid data: rankingData=${!!rankingData}, userStats=${!!userStats}`);
       return null;
     }
 
-    // Analyze 30-day period data (industry standard)
-    const monthlyData = rankingData.filter(item => item.duration === '30D');
-    console.log(`[Ranking] Monthly data points: ${monthlyData.length}`);
-    
-    if (monthlyData.length === 0) {
-      console.log(`[Ranking] No 30D data found`);
+    // Проверяем есть ли данные для этого проекта у пользователя
+    if (!userStats.projectMap || !userStats.projectMap[projectTicker]) {
+      console.log(`[Ranking] No user data found for project ${projectTicker}`);
       return null;
     }
 
-    // Try multiple activity metrics (not just 30d)
-    const userActivity = userStats.yaps_l30d || userStats.yaps_l7d || userStats.yaps_l3m || userStats.yaps_all || 0;
-    console.log(`[Ranking] User stats:`, {
-      yaps_l30d: userStats.yaps_l30d,
-      yaps_l7d: userStats.yaps_l7d, 
-      yaps_l3m: userStats.yaps_l3m,
-      yaps_all: userStats.yaps_all,
-      selected: userActivity
-    });
-    
-    if (userActivity <= 0) {
-      console.log(`[Ranking] User has no activity in any period`);
+    const userProjectData = userStats.projectMap[projectTicker];
+    console.log(`[Ranking] User project data for ${projectTicker}:`, userProjectData);
+
+    // Ищем данные за 30 дней, если нет - берем другие периоды
+    let userRankData = userProjectData['30D'] || 
+                      userProjectData['7D'] || 
+                      userProjectData['3M'] || 
+                      userProjectData['6M'] || 
+                      userProjectData['12M'];
+
+    if (!userRankData) {
+      console.log(`[Ranking] No ranking data found for user in project ${projectTicker}`);
       return null;
     }
-    
-    // Find user position using comparative analysis
-    let estimatedPosition = null;
-    let bestMatch = null;
-    
-    // Try exact match first
-    for (let i = 0; i < monthlyData.length; i++) {
-      const item = monthlyData[i];
-      console.log(`[Ranking] Comparing user ${userActivity} vs rank ${item.rank} (${item.mindshare})`);
-      
-      if (userActivity >= item.mindshare) {
-        estimatedPosition = item.rank;
-        bestMatch = item;
-        console.log(`[Ranking] Found position: rank ${estimatedPosition}`);
-        break;
-      }
-    }
-    
-    // If no exact match, try to find approximate position
-    if (!estimatedPosition && monthlyData.length > 0) {
-      // If user activity is higher than rank 1, they're probably rank 1
-      if (userActivity > monthlyData[0].mindshare) {
-        estimatedPosition = 1;
-        bestMatch = monthlyData[0];
-        console.log(`[Ranking] User activity higher than rank 1, assigning rank 1`);
-      }
-      // If user activity is very low but exists, put them at rank 100
-      else if (userActivity > 0) {
-        estimatedPosition = 100;
-        bestMatch = monthlyData[monthlyData.length - 1];
-        console.log(`[Ranking] Low activity detected, assigning rank 100`);
-      }
-    }
 
-    if (estimatedPosition && estimatedPosition <= 100) {
-      console.log(`[Ranking] ✅ Final position: rank ${estimatedPosition} with activity ${userActivity}`);
-      return {
-        rank: estimatedPosition,
-        mindshare: userActivity,
-        change_7d_ratio: 0 // Historical data not available in current dataset
-      };
-    }
+    console.log(`[Ranking] ✅ Found user ranking for ${projectTicker}: rank ${userRankData.rank}, mindshare ${userRankData.mindshare}`);
 
-    console.log(`[Ranking] ❌ No valid position found for user activity ${userActivity}`);
-    return null;
+    return {
+      rank: userRankData.rank,
+      mindshare: userRankData.mindshare,
+      change_7d_ratio: 0 // Можно добавить расчет изменений если нужно
+    };
   }
 
   // Comprehensive user search across all tracked projects  
@@ -309,6 +289,8 @@ class EnhancedKaitoAPI {
     let successCount = 0;
     let errorCount = 0;
 
+    console.log(`[Search] User found with data for ${Object.keys(userStats.projectMap).length} projects`);
+
     // Step 2: Analyze user positioning across projects
     for (const project of projectsToCheck) {
       try {
@@ -319,6 +301,13 @@ class EnhancedKaitoAPI {
           continue;
         }
 
+        // Сначала проверим есть ли у пользователя данные для этого проекта
+        if (!userStats.projectMap[ticker]) {
+          console.log(`[Search] User has no data for project ${ticker}`);
+          successCount++; // Это не ошибка, просто нет данных
+          continue;
+        }
+
         const rankingData = await this.getProjectRankingData(ticker);
         if (!rankingData) {
           errorCount++;
@@ -326,7 +315,7 @@ class EnhancedKaitoAPI {
         }
 
         successCount++;
-        const userPosition = this.calculateUserRanking(rankingData, userStats);
+        const userPosition = this.calculateUserRanking(rankingData, userStats, ticker);
         
         if (userPosition && userPosition.rank <= 100) {
           results.push({
