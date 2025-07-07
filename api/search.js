@@ -1,5 +1,5 @@
-// Enhanced Kaito API with Multiple Data Sources
-// Kaito Rank Tracker by @Over9725 - Optimized Architecture
+// Enhanced Kaito API with Auto-Updating Project List
+// Kaito Rank Tracker by @Over9725 - Auto Project Discovery
 
 class EnhancedKaitoAPI {
   constructor() {
@@ -43,48 +43,19 @@ class EnhancedKaitoAPI {
       }
     ];
     
-    // Standard project ticker mapping
-    this.tickerMapping = {
-      'PUMP': 'PUMP',
-      'ANOMA': 'ANOMA', 
-      'NEWTON': 'NEWTON',
-      'MITOSIS': 'MITOSIS',
-      'STORYPROTOCOL': 'STORYPROTOCOL',
-      'CAMP': 'CAMP',
-      'CALDERA': 'CALDERA',
-      'UNION': 'UNION',
-      'INFINEX': 'INFINEX',
-      'MEGAETH': 'MEGAETH',
-      'BOUNDLESS': 'BOUNDLESS',
-      'BLS': 'BLS',
-      'MIRA': 'MIRA',
-      'KAT': 'KAT',
-      'LUMITERRA': 'LUMITERRA',
-      'NOYA': 'NOYA',
-      'SUCCINCT': 'SUCCINCT',
-      'SATLAYER': 'SATLAYER',
-      'IRYS': 'IRYS',
-      'SOMNIA': 'SOMNIA',
-      'INFINIT': 'INFINIT',
-      'LOMBARD': 'LOMBARD',
-      'THEORIQ': 'THEORIQ',
-      'MONAD': 'MONAD',
-      'ECLIPSE': 'ECLIPSE',
-      'KAITO': 'KAITO',
-      'PENGU': 'PENGU',
-      'FUEL': 'FUEL',
-      'MOVEMENT': 'MOVEMENT',
-      'SONIC': 'S',
-      'ALLORA': 'ALLORA'
-    };
-
-    this.projects = [
+    // Fallback проекты (если автообновление не работает) - 50 ПРОЕКТОВ
+    this.fallbackProjects = [
+      // TOP TIER (8 проектов)
       { id: 'PUMP', name: 'PUMP', tier: 'top' },
       { id: 'NEWTON', name: 'Newton', tier: 'top' },
       { id: 'MITOSIS', name: 'Mitosis', tier: 'top' },
       { id: 'STORYPROTOCOL', name: 'Story', tier: 'top' },
       { id: 'CAMP', name: 'Camp Network', tier: 'top' },
       { id: 'ANOMA', name: 'ANOMA', tier: 'top' },
+      { id: 'HYPERLIQUID', name: 'Hyperliquid', tier: 'top' },
+      { id: 'VIRTUALS', name: 'Virtuals Protocol', tier: 'top' },
+      
+      // HIGH TIER (12 проектов)
       { id: 'CALDERA', name: 'Caldera', tier: 'high' },
       { id: 'UNION', name: 'Union', tier: 'high' },
       { id: 'INFINEX', name: 'Infinex', tier: 'high' },
@@ -92,6 +63,13 @@ class EnhancedKaitoAPI {
       { id: 'BOUNDLESS', name: 'Boundless', tier: 'high' },
       { id: 'BLS', name: 'Bless', tier: 'high' },
       { id: 'MIRA', name: 'Mira Network', tier: 'high' },
+      { id: 'BERACHAIN', name: 'Berachain', tier: 'high' },
+      { id: 'PARALLEL', name: 'Parallel', tier: 'high' },
+      { id: 'AETHIR', name: 'Aethir', tier: 'high' },
+      { id: 'GRASS', name: 'Grass', tier: 'high' },
+      { id: 'PUDGYPENGUINS', name: 'Pudgy Penguins', tier: 'high' },
+      
+      // MID TIER (15 проектов)
       { id: 'LUMITERRA', name: 'Lumiterra', tier: 'mid' },
       { id: 'NOYA', name: 'Noya.ai', tier: 'mid' },
       { id: 'SUCCINCT', name: 'Succinct', tier: 'mid' },
@@ -101,6 +79,14 @@ class EnhancedKaitoAPI {
       { id: 'INFINIT', name: 'INFINIT', tier: 'mid' },
       { id: 'LOMBARD', name: 'Lombard', tier: 'mid' },
       { id: 'THEORIQ', name: 'Theoriq', tier: 'mid' },
+      { id: 'ZIRCUIT', name: 'Zircuit', tier: 'mid' },
+      { id: 'MORPHO', name: 'Morpho', tier: 'mid' },
+      { id: 'ORDERLY', name: 'Orderly Network', tier: 'mid' },
+      { id: 'LIDO', name: 'Lido Finance', tier: 'mid' },
+      { id: 'SHARDEUM', name: 'Shardeum', tier: 'mid' },
+      { id: 'FHENIX', name: 'Fhenix', tier: 'mid' },
+      
+      // EMERGING TIER (15 проектов)
       { id: 'MONAD', name: 'Monad', tier: 'emerging' },
       { id: 'ECLIPSE', name: 'Eclipse', tier: 'emerging' },
       { id: 'KAITO', name: 'Kaito', tier: 'emerging' },
@@ -108,17 +94,248 @@ class EnhancedKaitoAPI {
       { id: 'FUEL', name: 'FUEL', tier: 'emerging' },
       { id: 'MOVEMENT', name: 'Movement', tier: 'emerging' },
       { id: 'SONIC', name: 'Sonic', tier: 'emerging' },
-      { id: 'ALLORA', name: 'Allora', tier: 'emerging' }
+      { id: 'ALLORA', name: 'Allora', tier: 'emerging' },
+      { id: 'POLYHEDRA', name: 'Polyhedra Network', tier: 'emerging' },
+      { id: 'AVAIL', name: 'Avail', tier: 'emerging' },
+      { id: 'SCROLL', name: 'Scroll', tier: 'emerging' },
+      { id: 'LINEA', name: 'Linea', tier: 'emerging' },
+      { id: 'BASE', name: 'Base', tier: 'emerging' },
+      { id: 'BLAST', name: 'Blast', tier: 'emerging' },
+      { id: 'MANTLE', name: 'Mantle', tier: 'emerging' }
     ];
 
+    // Динамически обновляемые проекты
+    this.projects = [];
+    this.tickerMapping = {};
+    
     this.cache = new Map();
     this.cacheExpiry = 30 * 60 * 1000; // 30 минут
+    this.projectsCacheExpiry = 6 * 60 * 60 * 1000; // 6 часов для списка проектов
   }
 
-  // Multi-source user data retrieval - ИСПРАВЛЕНО
+  // НОВАЯ ФУНКЦИЯ: Автоматическое получение списка популярных проектов
+  async discoverPopularProjects() {
+    const cacheKey = 'popular_projects';
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && (Date.now() - cached.timestamp) < this.projectsCacheExpiry) {
+      console.log(`[ProjectDiscovery] Using cached projects list (${cached.data.length} projects)`);
+      return cached.data;
+    }
+
+    console.log(`[ProjectDiscovery] Starting project discovery...`);
+    
+    try {
+      // Способ 1: Получаем топ проекты через общий endpoint
+      const topProjectsUrl = `${this.dataSources[2].baseURL}/leaderboard-projects-list`;
+      
+      const response = await fetch(topProjectsUrl, {
+        method: 'GET',
+        headers: this.dataSources[2].headers,
+        signal: AbortSignal.timeout(10000)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`[ProjectDiscovery] Got projects data:`, data);
+        
+        if (data.data && Array.isArray(data.data)) {
+          const discoveredProjects = this.processDiscoveredProjects(data.data);
+          console.log(`[ProjectDiscovery] ✅ Discovered ${discoveredProjects.length} projects`);
+          
+          this.cache.set(cacheKey, {
+            data: discoveredProjects,
+            timestamp: Date.now()
+          });
+          
+          return discoveredProjects;
+        }
+      }
+      
+      // Способ 2: Анализируем существующие данные пользователей
+      console.log(`[ProjectDiscovery] Fallback: Analyzing user data for popular projects...`);
+      const projectsFromUserData = await this.discoverFromUserData();
+      
+      if (projectsFromUserData.length > 0) {
+        console.log(`[ProjectDiscovery] ✅ Discovered ${projectsFromUserData.length} projects from user data`);
+        
+        this.cache.set(cacheKey, {
+          data: projectsFromUserData,
+          timestamp: Date.now()
+        });
+        
+        return projectsFromUserData;
+      }
+      
+    } catch (error) {
+      console.error(`[ProjectDiscovery] Error:`, error.message);
+    }
+    
+    // Способ 3: Используем fallback список
+    console.log(`[ProjectDiscovery] Using fallback projects list`);
+    return this.fallbackProjects;
+  }
+
+  // Обработка найденных проектов
+  processDiscoveredProjects(projectsData) {
+    const projectCounts = new Map();
+    const projectNames = new Map();
+    
+    // Подсчитываем популярность проектов
+    projectsData.forEach(item => {
+      if (item.topic_id) {
+        const count = projectCounts.get(item.topic_id) || 0;
+        projectCounts.set(item.topic_id, count + 1);
+        
+        // Сохраняем название проекта
+        if (!projectNames.has(item.topic_id)) {
+          projectNames.set(item.topic_id, this.formatProjectName(item.topic_id));
+        }
+      }
+    });
+    
+    // Сортируем по популярности и создаем список
+    const sortedProjects = Array.from(projectCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 50) // Топ 50 проектов
+      .map(([id, count], index) => ({
+        id: id,
+        name: projectNames.get(id),
+        tier: this.assignTier(index, count),
+        popularity: count
+      }));
+    
+    console.log(`[ProjectDiscovery] Top 10 projects by popularity:`, 
+      sortedProjects.slice(0, 10).map(p => `${p.name} (${p.popularity})`));
+    
+    return sortedProjects;
+  }
+
+  // Альтернативный способ: анализ данных пользователей
+  async discoverFromUserData() {
+    try {
+      // Получаем данные нескольких популярных пользователей
+      const testUsers = ['AnonVee_', 'gm365', 'cryptobanter', 'DefiIgnas', 'TheBitcoinConf'];
+      const allProjects = new Map();
+      
+      for (const username of testUsers) {
+        try {
+          const userData = await this.getUserData(username);
+          if (userData && userData.rankings) {
+            userData.rankings.forEach(item => {
+              if (item.topic_id) {
+                const count = allProjects.get(item.topic_id) || 0;
+                allProjects.set(item.topic_id, count + 1);
+              }
+            });
+          }
+          
+          // Задержка между запросами
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.log(`[ProjectDiscovery] Error with user ${username}:`, error.message);
+        }
+      }
+      
+      // Преобразуем в список проектов
+      return Array.from(allProjects.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 50)
+        .map(([id, count], index) => ({
+          id: id,
+          name: this.formatProjectName(id),
+          tier: this.assignTier(index, count),
+          popularity: count
+        }));
+        
+    } catch (error) {
+      console.error(`[ProjectDiscovery] Error in user data analysis:`, error.message);
+      return [];
+    }
+  }
+
+  // Форматирование названий проектов
+  formatProjectName(ticker) {
+    const nameMap = {
+      'STORYPROTOCOL': 'Story Protocol',
+      'CAMP': 'Camp Network',
+      'MEGAETH': 'MegaETH',
+      'BLS': 'Bless',
+      'MIRA': 'Mira Network',
+      'NOYA': 'Noya.ai',
+      'SATLAYER': 'SatLayer',
+      'INFINIT': 'INFINIT',
+      'THEORIQ': 'Theoriq',
+      'PENGU': 'PENGU',
+      'FUEL': 'FUEL',
+      'HYPERLIQUID': 'Hyperliquid',
+      'VIRTUALS': 'Virtuals Protocol',
+      'BERACHAIN': 'Berachain',
+      'PARALLEL': 'Parallel',
+      'AETHIR': 'Aethir',
+      'GRASS': 'Grass',
+      'PUDGYPENGUINS': 'Pudgy Penguins',
+      'ZIRCUIT': 'Zircuit',
+      'MORPHO': 'Morpho',
+      'ORDERLY': 'Orderly Network',
+      'LIDO': 'Lido Finance',
+      'SHARDEUM': 'Shardeum',
+      'FHENIX': 'Fhenix',
+      'POLYHEDRA': 'Polyhedra Network',
+      'AVAIL': 'Avail',
+      'SCROLL': 'Scroll',
+      'LINEA': 'Linea',
+      'BASE': 'Base',
+      'BLAST': 'Blast',
+      'MANTLE': 'Mantle'
+    };
+    
+    return nameMap[ticker] || ticker.charAt(0).toUpperCase() + ticker.slice(1).toLowerCase();
+  }
+
+  // Автоматическое определение tier на основе популярности (для 50 проектов)
+  assignTier(index, popularity) {
+    if (index < 8) return 'top';        // Топ 8 - top tier
+    if (index < 20) return 'high';      // Топ 20 - high tier  
+    if (index < 35) return 'mid';       // Топ 35 - mid tier
+    return 'emerging';                  // Остальные - emerging
+  }
+
+  // Обновление ticker mapping
+  updateTickerMapping(projects) {
+    this.tickerMapping = {};
+    projects.forEach(project => {
+      this.tickerMapping[project.id] = project.id;
+    });
+    console.log(`[ProjectDiscovery] Updated ticker mapping for ${projects.length} projects`);
+  }
+
+  // Инициализация проектов (вызывается при старте)
+  async initializeProjects() {
+    console.log(`[ProjectDiscovery] Initializing projects...`);
+    
+    try {
+      this.projects = await this.discoverPopularProjects();
+      this.updateTickerMapping(this.projects);
+      
+      console.log(`[ProjectDiscovery] ✅ Initialized with ${this.projects.length} projects`);
+      console.log(`[ProjectDiscovery] Tier distribution:`, {
+        top: this.projects.filter(p => p.tier === 'top').length,
+        high: this.projects.filter(p => p.tier === 'high').length,
+        mid: this.projects.filter(p => p.tier === 'mid').length,
+        emerging: this.projects.filter(p => p.tier === 'emerging').length
+      });
+      
+    } catch (error) {
+      console.error(`[ProjectDiscovery] Initialization failed, using fallback:`, error.message);
+      this.projects = this.fallbackProjects;
+      this.updateTickerMapping(this.projects);
+    }
+  }
+
+  // Остальные методы остаются без изменений...
   async getUserData(username) {
     try {
-      // Try aggregator source for user statistics
       const url = `${this.dataSources[2].baseURL}/leaderboard-search?username=${encodeURIComponent(username)}`;
       console.log(`[DataSource] Querying analytics endpoint for user: ${username}`);
       
@@ -136,19 +353,14 @@ class EnhancedKaitoAPI {
       const data = await response.json();
       console.log(`[DataSource] Analytics response received`);
       
-      // ИСПРАВЛЕНО: правильно обрабатываем массив данных
       const userData = data.data || data || null;
-      console.log(`[DataSource] Raw user data:`, JSON.stringify(userData));
       
       if (userData && Array.isArray(userData)) {
-        // Преобразуем массив рейтингов в удобный формат
         const processedData = {
           rankings: userData,
-          // Создаем карту проектов для быстрого поиска
           projectMap: {}
         };
         
-        // Группируем рейтинги по проектам
         userData.forEach(item => {
           if (!processedData.projectMap[item.topic_id]) {
             processedData.projectMap[item.topic_id] = {};
@@ -173,7 +385,6 @@ class EnhancedKaitoAPI {
     }
   }
 
-  // Enhanced project data retrieval with fallbacks
   async getProjectRankingData(ticker) {
     const cacheKey = `ranking_${ticker}`;
     const cached = this.cache.get(cacheKey);
@@ -184,7 +395,6 @@ class EnhancedKaitoAPI {
     }
 
     try {
-      // Use aggregator endpoint for better reliability
       const url = `${this.dataSources[2].baseURL}/leaderboard-rank-mindshare?ticker=${ticker}`;
       console.log(`[DataSource] Querying metrics API for: ${ticker}`);
       
@@ -218,14 +428,12 @@ class EnhancedKaitoAPI {
     }
   }
 
-  // ИСПРАВЛЕННЫЙ алгоритм расчета рейтинга
   calculateUserRanking(rankingData, userStats, projectTicker) {
     if (!rankingData || !Array.isArray(rankingData) || !userStats) {
       console.log(`[Ranking] Invalid data: rankingData=${!!rankingData}, userStats=${!!userStats}`);
       return null;
     }
 
-    // Проверяем есть ли данные для этого проекта у пользователя
     if (!userStats.projectMap || !userStats.projectMap[projectTicker]) {
       console.log(`[Ranking] No user data found for project ${projectTicker}`);
       return null;
@@ -234,7 +442,6 @@ class EnhancedKaitoAPI {
     const userProjectData = userStats.projectMap[projectTicker];
     console.log(`[Ranking] User project data for ${projectTicker}:`, userProjectData);
 
-    // Ищем данные за 30 дней, если нет - берем другие периоды
     let userRankData = userProjectData['30D'] || 
                       userProjectData['7D'] || 
                       userProjectData['3M'] || 
@@ -251,25 +458,29 @@ class EnhancedKaitoAPI {
     return {
       rank: userRankData.rank,
       mindshare: userRankData.mindshare,
-      change_7d_ratio: 0 // Можно добавить расчет изменений если нужно
+      change_7d_ratio: 0
     };
   }
 
-  // Comprehensive user search across all tracked projects  
   async searchUserInAllProjects(username, mode = 'standard') {
+    // Убеждаемся что проекты инициализированы
+    if (this.projects.length === 0) {
+      await this.initializeProjects();
+    }
+    
     const limits = {
       lightning: 15,
-      standard: 25, 
-      complete: 30,
-      ultimate: 30
+      standard: 30, 
+      complete: 45,
+      ultimate: 50
     };
     
     const projectCount = limits[mode] || 25;
     const projectsToCheck = this.projects.slice(0, projectCount);
     
     console.log(`[Search] Starting enhanced search for ${username} in ${projectsToCheck.length} projects`);
+    console.log(`[Search] Using ${this.projects.length > 30 ? 'DYNAMIC' : 'FALLBACK'} project list`);
     
-    // Step 1: Get comprehensive user statistics
     const userStats = await this.getUserData(username);
     if (!userStats) {
       console.log(`[Search] User ${username} not found in data sources`);
@@ -280,7 +491,8 @@ class EnhancedKaitoAPI {
           found_in: 0,
           not_found: projectsToCheck.length,
           errors: 0,
-          success_rate: 0
+          success_rate: 0,
+          project_source: this.projects.length > 30 ? 'dynamic' : 'fallback'
         }
       };
     }
@@ -291,7 +503,6 @@ class EnhancedKaitoAPI {
 
     console.log(`[Search] User found with data for ${Object.keys(userStats.projectMap).length} projects`);
 
-    // Step 2: Analyze user positioning across projects
     for (const project of projectsToCheck) {
       try {
         const ticker = this.tickerMapping[project.id];
@@ -301,10 +512,9 @@ class EnhancedKaitoAPI {
           continue;
         }
 
-        // Сначала проверим есть ли у пользователя данные для этого проекта
         if (!userStats.projectMap[ticker]) {
           console.log(`[Search] User has no data for project ${ticker}`);
-          successCount++; // Это не ошибка, просто нет данных
+          successCount++;
           continue;
         }
 
@@ -330,7 +540,6 @@ class EnhancedKaitoAPI {
           console.log(`[Search] ✅ Found ${username} in ${project.name} at rank #${userPosition.rank}`);
         }
 
-        // Rate limiting protection
         await new Promise(resolve => setTimeout(resolve, 100));
         
       } catch (error) {
@@ -348,12 +557,12 @@ class EnhancedKaitoAPI {
         found_in: results.length,
         not_found: successCount - results.length,
         errors: errorCount,
-        success_rate: Math.round((successCount / projectsToCheck.length) * 100)
+        success_rate: Math.round((successCount / projectsToCheck.length) * 100),
+        project_source: this.projects.length > 30 ? 'dynamic' : 'fallback'
       }
     };
   }
 
-  // Генерация анализа (как в оригинале)
   generateAnalysis(rankings) {
     if (rankings.length === 0) {
       return {
@@ -405,7 +614,6 @@ class EnhancedKaitoAPI {
 
 // MAIN HANDLER
 export default async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -426,7 +634,6 @@ export default async function handler(req, res) {
   try {
     const { username, mode = 'standard' } = req.body;
     
-    // Валидация
     if (!username || typeof username !== 'string') {
       return res.status(400).json({
         success: false,
@@ -454,7 +661,6 @@ export default async function handler(req, res) {
     
     console.log(`[Handler] Starting enhanced search for ${cleanUsername} in ${mode} mode`);
     
-    // Advanced multi-source search algorithm
     const searchResult = await api.searchUserInAllProjects(cleanUsername, mode);
     const analysis = api.generateAnalysis(searchResult.rankings);
     
@@ -462,7 +668,7 @@ export default async function handler(req, res) {
 
     const response = {
       success: true,
-      method: 'enhanced_aggregation',
+      method: 'enhanced_aggregation_v2',
       data: {
         user: {
           input: username,
@@ -482,7 +688,7 @@ export default async function handler(req, res) {
       }
     };
 
-    console.log(`[Handler] ✅ Enhanced search completed: ${searchResult.rankings.length} found, ${searchResult.stats.success_rate}% success rate`);
+    console.log(`[Handler] ✅ Enhanced search completed: ${searchResult.rankings.length} found, ${searchResult.stats.success_rate}% success rate (${searchResult.stats.project_source} projects)`);
 
     res.status(200).json(response);
 
