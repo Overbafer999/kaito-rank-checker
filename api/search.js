@@ -28,10 +28,17 @@ class EnhancedKaitoAPI {
         name: 'aggregator',
         baseURL: 'https://gomtu.xyz/api/kaito',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
           'Accept': 'application/json, text/plain, */*',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Referer': 'https://kaito.ai/'
+          'Accept-Language': 'ru',
+          'Referer': 'https://gomtu.xyz/',
+          'DNT': '1',
+          'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+          'sec-ch-ua-mobile': '?0',
+          'sec-ch-ua-platform': '"Windows"',
+          'sec-fetch-dest': 'empty',
+          'sec-fetch-mode': 'cors',
+          'sec-fetch-site': 'same-origin'
         }
       }
     ];
@@ -113,7 +120,7 @@ class EnhancedKaitoAPI {
     try {
       // Try aggregator source for user statistics
       const url = `${this.dataSources[2].baseURL}/leaderboard-search?username=${encodeURIComponent(username)}`;
-      console.log(`[DataSource] Fetching user data: ${username}`);
+      console.log(`[DataSource] Querying analytics endpoint for user: ${username}`);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -122,14 +129,23 @@ class EnhancedKaitoAPI {
       });
 
       if (!response.ok) {
-        console.log(`[DataSource] User lookup failed: ${response.status}`);
+        console.log(`[DataSource] Analytics query failed: ${response.status}`);
         return null;
       }
 
       const data = await response.json();
-      console.log(`[DataSource] User data retrieved successfully`);
+      console.log(`[DataSource] Analytics response received`);
       
-      return data.data || null;
+      const userData = data.data || data || null;
+      console.log(`[DataSource] Processed analytics data:`, JSON.stringify(userData));
+      
+      if (userData) {
+        console.log(`[DataSource] User analytics data processed successfully`);
+        return userData;
+      } else {
+        console.log(`[DataSource] No analytics data available for user`);
+        return null;
+      }
       
     } catch (error) {
       console.error(`[DataSource] User lookup error:`, error.message);
@@ -150,7 +166,7 @@ class EnhancedKaitoAPI {
     try {
       // Use aggregator endpoint for better reliability
       const url = `${this.dataSources[2].baseURL}/leaderboard-rank-mindshare?ticker=${ticker}`;
-      console.log(`[DataSource] Fetching ranking data for: ${ticker}`);
+      console.log(`[DataSource] Querying metrics API for: ${ticker}`);
       
       const response = await fetch(url, {
         method: 'GET', 
@@ -159,12 +175,12 @@ class EnhancedKaitoAPI {
       });
 
       if (!response.ok) {
-        console.log(`[DataSource] Project ${ticker} failed: ${response.status}`);
+        console.log(`[DataSource] Metrics query ${ticker} failed: ${response.status}`);
         return null;
       }
 
       const data = await response.json();
-      console.log(`[DataSource] Project ${ticker} data retrieved`);
+      console.log(`[DataSource] Metrics ${ticker} data received`);
       
       if (data.data && Array.isArray(data.data)) {
         this.cache.set(cacheKey, {
