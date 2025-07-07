@@ -184,25 +184,64 @@ class EnhancedKaitoAPI {
 
   // Advanced ranking calculation algorithm
   calculateUserRanking(rankingData, userStats) {
-    if (!rankingData || !Array.isArray(rankingData) || !userStats) return null;
+    if (!rankingData || !Array.isArray(rankingData) || !userStats) {
+      console.log(`[Ranking] Invalid data: rankingData=${!!rankingData}, userStats=${!!userStats}`);
+      return null;
+    }
 
     // Analyze 30-day period data (industry standard)
     const monthlyData = rankingData.filter(item => item.duration === '30D');
-    if (monthlyData.length === 0) return null;
+    console.log(`[Ranking] Monthly data points: ${monthlyData.length}`);
+    
+    if (monthlyData.length === 0) {
+      console.log(`[Ranking] No 30D data found`);
+      return null;
+    }
 
     // Advanced positioning algorithm based on user activity metrics
     const userActivity = userStats.yaps_l30d || 0;
+    console.log(`[Ranking] User activity (30d): ${userActivity}`);
+    
+    if (userActivity <= 0) {
+      console.log(`[Ranking] User has no activity in 30d period`);
+      return null;
+    }
     
     // Find user position using comparative analysis
     let estimatedPosition = null;
+    let bestMatch = null;
+    
+    // Try exact match first
     for (let i = 0; i < monthlyData.length; i++) {
-      if (userActivity >= monthlyData[i].mindshare) {
-        estimatedPosition = monthlyData[i].rank;
+      const item = monthlyData[i];
+      console.log(`[Ranking] Comparing user ${userActivity} vs rank ${item.rank} (${item.mindshare})`);
+      
+      if (userActivity >= item.mindshare) {
+        estimatedPosition = item.rank;
+        bestMatch = item;
+        console.log(`[Ranking] Found position: rank ${estimatedPosition}`);
         break;
       }
     }
+    
+    // If no exact match, try to find approximate position
+    if (!estimatedPosition && monthlyData.length > 0) {
+      // If user activity is higher than rank 1, they're probably rank 1
+      if (userActivity > monthlyData[0].mindshare) {
+        estimatedPosition = 1;
+        bestMatch = monthlyData[0];
+        console.log(`[Ranking] User activity higher than rank 1, assigning rank 1`);
+      }
+      // If user activity is very low but exists, put them at rank 100
+      else if (userActivity > 0) {
+        estimatedPosition = 100;
+        bestMatch = monthlyData[monthlyData.length - 1];
+        console.log(`[Ranking] Low activity detected, assigning rank 100`);
+      }
+    }
 
-    if (estimatedPosition) {
+    if (estimatedPosition && estimatedPosition <= 100) {
+      console.log(`[Ranking] ✅ Final position: rank ${estimatedPosition} with activity ${userActivity}`);
       return {
         rank: estimatedPosition,
         mindshare: userActivity,
@@ -210,6 +249,7 @@ class EnhancedKaitoAPI {
       };
     }
 
+    console.log(`[Ranking] ❌ No valid position found for user activity ${userActivity}`);
     return null;
   }
 
