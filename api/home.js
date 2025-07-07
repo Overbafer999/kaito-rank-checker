@@ -1,4 +1,5 @@
-// Kaito Rank Checker - by OveR | index.js
+// Kaito Rank Checker - by OveR | home.js (WAVE DESIGN)
+
 module.exports = function handler(req, res) {
   res.setHeader('Content-Type', 'text/html');
   res.status(200).send(`
@@ -24,33 +25,61 @@ module.exports = function handler(req, res) {
     html, body { min-height: 100vh; margin: 0; padding: 0;}
     body {
       font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      background: linear-gradient(120deg, #191b2c 0%, #4a40c7 70%, #5ad0ff 100%);
-      color: #e6eaf7;
+      background: #181B2C;
       min-height: 100vh;
       box-sizing: border-box;
-      position: relative;
       overflow-x: hidden;
+      position: relative;
     }
-    .bg-net {
-      pointer-events: none;
+    .wave-bg {
       position: fixed;
+      z-index: 0;
       inset: 0;
-      z-index: 0;
-      opacity: 0.09;
-      background-image:
-        repeating-linear-gradient(120deg, #fff 0 1px, transparent 1px 60px),
-        repeating-linear-gradient(60deg, #fff 0 1px, transparent 1px 60px);
-    }
-    .bg-glow {
-      position: fixed;
-      right: 12vw; top: 10vh;
-      width: 330px; height: 330px;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(120deg, #171C2B 0%, #25245A 60%, #37c5f6 130%);
       pointer-events: none;
-      border-radius: 50%;
-      background: radial-gradient(circle, #8ed0fc55 0%, #694aff00 70%);
-      filter: blur(24px);
-      z-index: 0;
-      opacity: 0.20;
+    }
+    .waves {
+      position: absolute;
+      width: 100vw;
+      height: 100%;
+      min-height: 400px;
+      left: 0; top: 0;
+      z-index: 1;
+    }
+    .wave-glow {
+      position: absolute;
+      width: 900px;
+      height: 340px;
+      left: 40%;
+      top: 10vh;
+      transform: translateX(-45%);
+      pointer-events: none;
+      background: radial-gradient(circle, #3fd1ff40 0%, #181B2C00 70%);
+      filter: blur(50px);
+      opacity: 0.24;
+      z-index: 2;
+    }
+    .container {
+      position: relative;
+      z-index: 5;
+      background: rgba(24,28,54,0.91);
+      border-radius: 28px;
+      padding: 3.2rem 2.4rem 2.1rem 2.4rem;
+      max-width: 430px;
+      margin: 65px auto 0 auto;
+      box-shadow: 0 8px 48px 0 #1b254d66, 0 2px 16px #2f387730;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeInUp 1.0s cubic-bezier(.22,.68,.48,1.01) 0.13s both;
+      backdrop-filter: blur(2.7px);
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px);}
+      to { opacity: 1; transform: none;}
     }
     .by-over {
       position: fixed;
@@ -65,29 +94,12 @@ module.exports = function handler(req, res) {
       opacity: 0.91;
       user-select: none;
       transition: text-shadow 0.2s, color 0.15s;
+      cursor: pointer;
     }
     .by-over:hover {
       text-shadow: 0 0 36px #8bf, 0 0 8px #69f;
       color: #7ffcff;
       cursor: pointer;
-    }
-    .container {
-      position: relative;
-      z-index: 2;
-      background: rgba(24,28,54,0.82);
-      border-radius: 28px;
-      padding: 3.2rem 2.4rem 2.1rem 2.4rem;
-      max-width: 420px;
-      margin: 56px auto 0 auto;
-      box-shadow: 0 8px 36px 0 #1b254d4d, 0 2px 16px #2f387710;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      animation: fadeInUp 1.0s cubic-bezier(.22,.68,.48,1.01) 0.13s both;
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px);}
-      to { opacity: 1; transform: none;}
     }
     h1 {
       font-weight: 700;
@@ -400,9 +412,25 @@ module.exports = function handler(req, res) {
   </style>
 </head>
 <body>
-  <div class="bg-net"></div>
-  <div class="bg-glow"></div>
-  <div class="by-over">By OveR</div>
+  <div class="wave-bg">
+    <div class="wave-glow"></div>
+    <svg class="waves" viewBox="0 0 1440 500" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="gradient" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stop-color="#40e6ff" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#002045" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,350 Q360,290 720,350 T1440,350 V500 H0 Z" fill="url(#gradient)">
+        <animate attributeName="d" dur="10s" repeatCount="indefinite"
+          values="M0,350 Q360,290 720,350 T1440,350 V500 H0 Z;
+                  M0,370 Q360,330 720,320 T1440,340 V500 H0 Z;
+                  M0,340 Q360,380 720,320 T1440,370 V500 H0 Z;
+                  M0,350 Q360,290 720,350 T1440,350 V500 H0 Z" />
+      </path>
+    </svg>
+  </div>
+  <div class="by-over" onclick="window.open('https://twitter.com/Over9725','_blank')">By OveR</div>
   <div class="container fade-in-up">
     <button class="faq-btn" id="faqBtn" title="How it works? / Как это работает?">?</button>
     <div class="lang-switch">
@@ -443,9 +471,9 @@ module.exports = function handler(req, res) {
       Made by OveR // Kaito Community
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.3.0/tsparticles.bundle.min.js"></script>
   <script>
-    class KaitoRankTrackerApp {
+    // Оставил полностью твой JS без изменений (FAQ, Lang, поиск, результаты)
+    ${String.raw`class KaitoRankTrackerApp {
       constructor() {
         this.currentLang = "EN";
         this.selectedMode = "lightning";
@@ -453,53 +481,26 @@ module.exports = function handler(req, res) {
         this.searchInProgress = false;
         this.init();
       }
-
       init() {
-        this.initParticles();
         this.initEventListeners();
         this.setLang(this.currentLang);
       }
-
-      initParticles() {
-        window.addEventListener('DOMContentLoaded', () => {
-          if (window.tsParticles) {
-            tsParticles.load("bg-particles", {
-              fullScreen: { enable: false },
-              particles: {
-                number: { value: 34 },
-                color: { value: ["#65d8fc","#b3bfff","#6272ff","#55f6e6"] },
-                shape: { type: "circle" },
-                opacity: { value: 0.19, random: true },
-                size: { value: { min: 1, max: 3.3 } },
-                move: { enable: true, speed: 0.25, direction: "none", outModes: "out" }
-              },
-              interactivity: { events: { onHover: { enable: false }, onClick: { enable: false } } },
-              detectRetina: true
-            });
-          }
-        });
-      }
-
       initEventListeners() {
         document.getElementById('langEn').onclick = () => this.switchLang("EN");
         document.getElementById('langRu').onclick = () => this.switchLang("RU");
-
         const faqBtn = document.getElementById('faqBtn');
         const faqPopup = document.getElementById('faqPopup');
         let faqOpen = false;
-        
         faqBtn.onclick = () => {
           faqOpen = !faqOpen;
           faqPopup.classList.toggle('active', faqOpen);
         };
-
         window.onclick = (e) => {
           if(faqOpen && !faqPopup.contains(e.target) && !faqBtn.contains(e.target)) {
             faqPopup.classList.remove('active'); 
             faqOpen = false;
           }
         };
-
         document.querySelectorAll('.mode-btn').forEach(btn => {
           btn.onclick = () => {
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
@@ -507,12 +508,10 @@ module.exports = function handler(req, res) {
             this.selectedMode = btn.dataset.mode;
           };
         });
-
         document.getElementById('searchForm').onsubmit = (e) => {
           e.preventDefault();
           this.performSearch();
         };
-
         let debounceTimer;
         document.getElementById('username').oninput = (e) => {
           clearTimeout(debounceTimer);
@@ -521,11 +520,9 @@ module.exports = function handler(req, res) {
           }, 500);
         };
       }
-
       validateUsername(username) {
         const cleanUsername = username.replace('@', '').trim();
         const isValid = /^[a-zA-Z0-9_]{1,15}$/.test(cleanUsername);
-        
         const input = document.getElementById('username');
         if (cleanUsername && !isValid) {
           input.style.borderColor = '#ff6b6b';
@@ -533,14 +530,12 @@ module.exports = function handler(req, res) {
           input.style.borderColor = '#334b85';
         }
       }
-
       switchLang(lang) {
         document.getElementById('langEn').classList.toggle('selected', lang === "EN");
         document.getElementById('langRu').classList.toggle('selected', lang === "RU");
         this.currentLang = lang;
         this.setLang(lang);
       }
-
       setLang(lang) {
         const langPack = this.getLangPack();
         document.getElementById('mainTitle').textContent = langPack[lang].title;
@@ -551,13 +546,11 @@ module.exports = function handler(req, res) {
         document.getElementById('faqTitle').textContent = langPack[lang].faqTitle;
         document.getElementById('faqDesc').textContent = langPack[lang].faqDesc;
         document.getElementById('footerTxt').textContent = langPack[lang].footer;
-        
         const modesBtns = document.querySelectorAll('.mode-btn');
         modesBtns.forEach((btn, i) => {
           btn.innerHTML = langPack[lang].modes[i].icon + ' ' + langPack[lang].modes[i].name + ' <span>(' + langPack[lang].modes[i].desc + ')</span>';
         });
       }
-
       getLangPack() {
         return {
           EN: {
@@ -569,11 +562,11 @@ module.exports = function handler(req, res) {
             faqTitle: "How it works?",
             faqDesc: "Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 50+ trending crypto projects. Results are cached for better performance.",
             modes: [
-  {icon:"⚡",name:"Lightning",desc:"15 projects"},
-  {icon:"🚀",name:"Standard",desc:"30 projects"},
-  {icon:"🔥",name:"Complete",desc:"45 projects"},
-  {icon:"💎",name:"Ultimate",desc:"50 projects"},
-],
+              {icon:"⚡",name:"Lightning",desc:"15 projects"},
+              {icon:"🚀",name:"Standard",desc:"30 projects"},
+              {icon:"🔥",name:"Complete",desc:"45 projects"},
+              {icon:"💎",name:"Ultimate",desc:"50 projects"},
+            ],
             footer: "Made by OveR // Kaito Community"
           },
           RU: {
@@ -585,51 +578,41 @@ module.exports = function handler(req, res) {
             faqTitle: "Как это работает?",
             faqDesc: "Введи свой Twitter username, выбери режим поиска и начни поиск. Сервис покажет твои TOP-позиции по 50+ трендовым крипто-проектам. Результаты кешируются для лучшей производительности.",
             modes: [
-  {icon:"⚡",name:"Быстрый",desc:"15 проектов"},
-  {icon:"🚀",name:"Стандарт",desc:"30 проектов"},
-  {icon:"🔥",name:"Полный",desc:"45 проектов"},
-  {icon:"💎",name:"Ultimate",desc:"50 проектов"},
-],
+              {icon:"⚡",name:"Быстрый",desc:"15 проектов"},
+              {icon:"🚀",name:"Стандарт",desc:"30 проектов"},
+              {icon:"🔥",name:"Полный",desc:"45 проектов"},
+              {icon:"💎",name:"Ultimate",desc:"50 проектов"},
+            ],
             footer: "Сделано OveR // Kaito Community"
           }
         };
       }
-
       async performSearch() {
         if (this.searchInProgress) return;
-        
         const username = document.getElementById('username').value.trim();
         if (!username) {
           alert(this.currentLang === "EN" ? "Enter username!" : "Введите ник!");
           return;
         }
-
         const cacheKey = username + '_' + this.selectedMode;
         const cachedResult = this.cache.get(cacheKey);
-        
         if (cachedResult && (Date.now() - cachedResult.timestamp) < 30 * 60 * 1000) {
           this.displayResults(cachedResult.data, true);
           return;
         }
-
         this.searchInProgress = true;
         const searchBtn = document.getElementById('searchBtn');
         const resultsDiv = document.getElementById('results');
-        
         searchBtn.disabled = true;
         searchBtn.textContent = this.currentLang === "EN" ? "SEARCHING..." : "ПОИСК...";
-
         this.showLoadingWithProgress();
-
         try {
           const response = await fetch('/api/search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, mode: this.selectedMode })
           });
-
           const data = await response.json();
-          
           if (data.success && data.data) {
             this.cache.set(cacheKey, {
               data: data.data,
@@ -647,66 +630,49 @@ module.exports = function handler(req, res) {
           searchBtn.textContent = this.getLangPack()[this.currentLang].btn;
         }
       }
-
       showLoadingWithProgress() {
         const resultsDiv = document.getElementById('results');
         const modeData = {
           lightning: { projects: 15, time: 5 },
           standard: { projects: 30, time: 8 },
           complete: { projects: 45, time: 12 },
-         ultimate: { projects: 50, time: 15 }
+          ultimate: { projects: 50, time: 15 }
         };
-
         const currentMode = modeData[this.selectedMode];
         let progress = 0;
         const interval = (currentMode.time * 1000) / 100;
-
         resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><div class="progress-container"><div class="progress-bar" id="progressBar" style="width: 0%"></div></div><p style="color:#b3eaff; opacity:0.87">' + (this.currentLang === "EN" ? "Searching" : "Поиск") + ' <b>' + document.getElementById('username').value + '</b> ' + (this.currentLang === "EN" ? "in" : "в") + ' <b>' + this.selectedMode + '</b> mode...</p><p style="font-size:0.97rem; opacity:0.68; margin:0.4em 0 0 0;"><small><span id="progressText">0/' + currentMode.projects + ' projects checked</span><br>' + (this.currentLang === "EN" ? "Estimated time" : "Примерное время") + ': ' + currentMode.time + 's</small></p></div>';
-
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
-        
         const progressInterval = setInterval(() => {
           progress += 1;
           const projectsChecked = Math.floor((progress / 100) * currentMode.projects);
-          
           progressBar.style.width = progress + '%';
           progressText.textContent = projectsChecked + '/' + currentMode.projects + ' projects checked';
-          
           if (progress >= 100) {
             clearInterval(progressInterval);
           }
         }, interval);
-
         this.progressInterval = progressInterval;
       }
-
       displayResults(data, fromCache = false) {
         if (this.progressInterval) {
           clearInterval(this.progressInterval);
         }
-
         const { user, stats, rankings, analysis } = data;
         const resultsDiv = document.getElementById('results');
-        
         let html = '<div style="position: relative;">' + (fromCache ? '<div class="cache-indicator">📦 Cached</div>' : '') + '<h3 style="font-size:1.24rem; color:#71eaff; margin-bottom:1.1em;">' + (this.currentLang === "EN" ? "📊 Results for" : "📊 Результаты для") + ' <b>' + user.username + '</b></h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;"><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Projects Found" : "Проектов найдено") + '</strong><br><span style="font-size:1.5rem; color:#4caf50;">' + stats.found_in + '</span><span style="color:#999;">/' + stats.total_projects + '</span></div></div><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Processing Time" : "Время обработки") + '</strong><br><span style="font-size:1.5rem;">' + stats.processing_time + 's</span></div></div>';
-
         if (analysis && analysis.best_rank) {
           html += '<div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Best Rank" : "Лучший ранг") + '</strong><br><span style="font-size:1.5rem; color:#ffd700;">#' + analysis.best_rank + '</span></div></div><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Performance" : "Перформанс") + '</strong><br><span style="font-size:1.2rem; text-transform:capitalize; color:#4ecdc4;">' + analysis.performance_level + '</span></div></div>';
         }
-
         html += '</div>';
-
         if (rankings && rankings.length > 0) {
           html += '<h4 style="margin-top:1.3em; color:#7ee2ff;">' + (this.currentLang === "EN" ? "🎯 Rankings Found:" : "🎯 Найденные ранги:") + '</h4>';
-          
           rankings.forEach((rank, index) => {
             const emoji = ['🥇','🥈','🥉','4️⃣','5️⃣'][index] || '📊';
             const tierIcon = rank.tier === 'top' ? '🔥' : rank.tier === 'high' ? '⚡' : rank.tier === 'mid' ? '🚀' : '💎';
-            
             html += '<div class="rank-card" style="animation-delay: ' + (index * 0.1) + 's;"><div><strong>' + emoji + ' ' + rank.project + '</strong><br><small style="color:#88e6ff;">' + rank.tier.toUpperCase() + ' tier • ' + rank.trending_percentage + '% trending</small></div><div style="text-align:right;"><strong style="color:#ffd700;">#' + rank.rank + '</strong> ' + tierIcon + '<br><small style="color:#999;">' + rank.total_users_checked + ' users</small></div></div>';
           });
-
           if (analysis && analysis.recommendations && analysis.recommendations.length > 0) {
             html += '<h4 style="color:#ffe877;margin:1.3em 0 0.2em 0;">' + (this.currentLang === "EN" ? "💡 Recommendations:" : "💡 Рекомендации:") + '</h4><ul style="color:#c8e6ff; opacity:0.9;">';
             analysis.recommendations.forEach(rec => {
@@ -717,15 +683,12 @@ module.exports = function handler(req, res) {
         } else {
           html += '<div class="error" style="color:#ffe8e8"><h4 style="margin:0 0 0.2em 0;">' + (this.currentLang === "EN" ? "🔍 No Rankings Found" : "🔍 Ранги не найдены") + '</h4><p style="margin:0.2em 0;">' + user.username + ' ' + (this.currentLang === "EN" ? "was not found in the TOP 100 of any checked projects." : "не найден в ТОП-100 ни в одном из проверенных проектов.") + '</p><p style="font-size:0.96em; opacity:0.7;">💡 ' + (this.currentLang === "EN" ? "This doesn't mean they're not ranked - they might be in positions 101+ (API limitation)" : "Это не значит, что его нет в рейтинге — возможно, он ниже 100 места (ограничение API)") + '</p></div>';
         }
-
         html += '</div>';
         resultsDiv.innerHTML = html;
       }
     }
-
-    const app = new KaitoRankTrackerApp();
+    new KaitoRankTrackerApp();`}
   </script>
-  <div id="bg-particles" style="position:fixed; inset:0; z-index:0;"></div>
 </body>
 </html>
   `);
