@@ -1,4 +1,4 @@
-// Kaito Rank Checker - by OveR | home.js (WAVE DESIGN)
+// Kaito Rank Checker - ULTIMATE DARK WAVE DESIGN by OveR
 
 module.exports = function handler(req, res) {
   res.setHeader('Content-Type', 'text/html');
@@ -9,73 +9,53 @@ module.exports = function handler(req, res) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kaito Rank Tracker - by OveR</title>
-  <!-- SEO & OpenGraph -->
   <meta name="description" content="Kaito Rank Checker — Find your Twitter account in 50+ TOP trending crypto project leaderboards. Updated daily with real Kaito data.">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Kaito Rank Tracker — by OveR">
-  <meta property="og:description" content="Find your Twitter account in 50+ TOP trending crypto project leaderboards. Updated daily.">
-  <meta property="og:url" content="https://kaito-rank-checker.vercel.app/">
-  <meta property="og:image" content="/og-image.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Kaito Rank Tracker — by OveR">
-  <meta name="twitter:description" content="Check your crypto influence: Are you in the TOP across 50+ trending projects?">
-  <meta name="twitter:image" content="/og-image.png">
-  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:800,700,400&display=swap" rel="stylesheet">
   <style>
     html, body { min-height: 100vh; margin: 0; padding: 0;}
     body {
       font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      background: #181B2C;
+      background: #151a2b;
+      color: #ecf5ff;
       min-height: 100vh;
       box-sizing: border-box;
       overflow-x: hidden;
       position: relative;
     }
     .wave-bg {
-      position: fixed;
-      z-index: 0;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: linear-gradient(120deg, #171C2B 0%, #25245A 60%, #37c5f6 130%);
+      position: fixed; z-index: 0; inset: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(120deg, #151a2b 0%, #232a4e 60%, #49c6fc 130%);
       pointer-events: none;
+      overflow: hidden;
     }
     .waves {
       position: absolute;
-      width: 100vw;
-      height: 100%;
+      width: 100vw; height: 100%;
       min-height: 400px;
       left: 0; top: 0;
       z-index: 1;
+      opacity: 0.47;
     }
     .wave-glow {
       position: absolute;
-      width: 900px;
-      height: 340px;
-      left: 40%;
-      top: 10vh;
-      transform: translateX(-45%);
+      width: 900px; height: 340px;
+      left: 44vw; top: 9vh;
       pointer-events: none;
-      background: radial-gradient(circle, #3fd1ff40 0%, #181B2C00 70%);
-      filter: blur(50px);
-      opacity: 0.24;
-      z-index: 2;
+      background: radial-gradient(circle, #54efff44 0%, #151a2b00 70%);
+      filter: blur(60px);
+      opacity: 0.24; z-index: 2;
     }
     .container {
-      position: relative;
-      z-index: 5;
-      background: rgba(24,28,54,0.91);
-      border-radius: 28px;
-      padding: 3.2rem 2.4rem 2.1rem 2.4rem;
-      max-width: 430px;
+      position: relative; z-index: 5;
+      background: rgba(30,36,63,0.93);
+      border-radius: 30px;
+      padding: 3.4rem 2.6rem 2.2rem 2.6rem;
+      max-width: 440px;
       margin: 65px auto 0 auto;
-      box-shadow: 0 8px 48px 0 #1b254d66, 0 2px 16px #2f387730;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      box-shadow: 0 8px 48px 0 #2c49a988, 0 2px 16px #1ef9ff30;
+      display: flex; flex-direction: column; align-items: center;
       animation: fadeInUp 1.0s cubic-bezier(.22,.68,.48,1.01) 0.13s both;
-      backdrop-filter: blur(2.7px);
+      backdrop-filter: blur(3px);
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(40px);}
@@ -86,125 +66,100 @@ module.exports = function handler(req, res) {
       top: 28px; right: 38px;
       z-index: 20;
       font-family: 'Montserrat', Arial, sans-serif;
-      font-weight: 700;
-      font-size: 1.24rem;
+      font-weight: 800;
+      font-size: 1.21rem;
       letter-spacing: 0.13em;
       color: #fff;
-      text-shadow: 0 0 18px #8bd6ff, 0 0 4px #698aff;
-      opacity: 0.91;
+      text-shadow: 0 0 18px #0ff6, 0 0 4px #49f, 0 0 30px #15fffc88;
+      opacity: 0.93;
       user-select: none;
-      transition: text-shadow 0.2s, color 0.15s;
       cursor: pointer;
+      transition: text-shadow 0.18s, color 0.12s;
     }
     .by-over:hover {
-      text-shadow: 0 0 36px #8bf, 0 0 8px #69f;
-      color: #7ffcff;
-      cursor: pointer;
+      text-shadow: 0 0 38px #1ef9ff, 0 0 8px #18ffe7;
+      color: #18ffe7;
     }
-    h1 {
-      font-weight: 700;
-      font-size: 2.6rem;
-      margin-bottom: 1.0rem;
-      background: linear-gradient(90deg, #e8eefb 75%, #43d5ff 100%);
+    .kaito-gradient {
+      font-weight: 800;
+      font-size: 2.8rem;
+      line-height: 1.13;
+      background: linear-gradient(90deg,#6dc6ff 5%, #b683ff 50%, #55fff8 95%);
+      background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-fill-color: transparent;
+      animation: shimmerText 4s linear infinite;
       letter-spacing: 0.03em;
-      display: flex;
-      align-items: center;
+      margin-bottom: 0.7em;
+      margin-top: 0.18em;
+      display: block;
+      text-align: left;
+      filter: drop-shadow(0 2px 32px #4bf9ff40);
+      user-select: none;
     }
-    .kaito-subtitle {
-      font-size: 1.17rem;
-      margin-bottom: 0.23rem;
-      opacity: 0.88;
-      text-align: center;
+    @keyframes shimmerText {
+      0% {background-position: 0%;}
+      100% {background-position: 200%;}
     }
-    .kaito-sub2 {
-      margin-top: 0.14rem;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #d6f6ff;
-      opacity: 0.97;
+    .desc-light {
+      color: #e6f4ff !important;
+      text-shadow: 0 0 8px #122c, 0 0 1px #7fdcffc0;
+      opacity: 0.94;
     }
     .lang-switch {
       position: absolute;
       right: 24px; top: 28px;
-      font-size: 1.03rem;
-      z-index: 25;
+      font-size: 1.03rem; z-index: 25;
       user-select: none;
     }
     .lang-btn {
-      background: none;
-      border: none;
-      color: #88e6ff;
-      font-weight: 700;
-      font-size: 1.1rem;
-      margin-left: 0.17em;
-      cursor: pointer;
-      padding: 2px 7px;
-      border-radius: 7px;
+      background: none; border: none; color: #88e6ff;
+      font-weight: 700; font-size: 1.1rem; margin-left: 0.17em;
+      cursor: pointer; padding: 2px 7px; border-radius: 7px;
       transition: background .16s, color .12s;
     }
     .lang-btn.selected,
     .lang-btn:hover {
-      background: #262e56;
+      background: #232e4e;
       color: #fff;
     }
     .faq-btn {
-      position: absolute;
-      left: 20px; top: 28px;
-      width: 36px; height: 36px;
-      border: none;
-      background: linear-gradient(135deg, #313a5c 50%, #5274da 100%);
-      color: #93d5ff;
-      font-weight: 900;
-      border-radius: 50%;
+      position: absolute; left: 20px; top: 28px;
+      width: 36px; height: 36px; border: none;
+      background: linear-gradient(135deg, #23325c 50%, #1ef9ff 100%);
+      color: #93d5ff; font-weight: 900; border-radius: 50%;
       box-shadow: 0 2px 12px #2eb8ff13;
-      cursor: pointer;
-      font-size: 1.25em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 25;
+      cursor: pointer; font-size: 1.25em;
+      display: flex; align-items: center; justify-content: center; z-index: 25;
       transition: background .18s;
     }
     .faq-btn:hover {
-      background: linear-gradient(135deg, #5274da 50%, #313a5c 100%);
+      background: linear-gradient(135deg, #1ef9ff 50%, #23325c 100%);
       color: #fff;
     }
     .faq-popup {
-      position: absolute;
-      left: 24px; top: 74px;
-      z-index: 99;
-      background: rgba(25,28,54,0.99);
+      position: absolute; left: 24px; top: 74px; z-index: 99;
+      background: rgba(30,36,63,0.99);
       border-radius: 17px;
-      box-shadow: 0 4px 32px #217bff26;
+      box-shadow: 0 4px 32px #1ef9ff33;
       padding: 1.25em 1.25em 1.2em 1.35em;
-      width: 95vw;
-      max-width: 340px;
-      min-height: 80px;
+      width: 95vw; max-width: 340px; min-height: 80px;
       animation: fadeInUp .36s cubic-bezier(.18,.7,.52,1.1);
       display: none;
     }
     .faq-popup.active { display: block; }
     .faq-title {
-      font-size: 1.15em;
-      color: #4be3ff;
-      font-weight: 700;
-      margin-bottom: 0.8em;
-      letter-spacing: 0.03em;
+      font-size: 1.15em; color: #1ef9ff; font-weight: 700;
+      margin-bottom: 0.8em; letter-spacing: 0.03em;
     }
     .faq-desc {
-      font-size: 1.09em;
-      color: #eaf6ff;
-      opacity: 0.92;
+      font-size: 1.09em; color: #eaf6ff; opacity: 0.92;
     }
     .modes-list {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.95rem;
-      margin: 1.2rem 0 1.7rem 0;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.15rem; margin: 1.2rem 0 1.7rem 0;
     }
     .mode-btn {
       background: rgba(55,62,113,0.70);
@@ -213,26 +168,24 @@ module.exports = function handler(req, res) {
       color: #b9f7ff;
       font-weight: 700;
       font-size: 1.13rem;
-      padding: 1.1rem 1.4rem;
-      box-shadow: 0 2px 18px #35b0ff12;
+      padding: 1.13rem 1.35rem;
+      box-shadow: 0 2px 18px #1ef9ff11;
       display: flex;
       align-items: center;
       gap: 0.66em;
       cursor: pointer;
-      transition: background 0.2s, border 0.2s, box-shadow 0.23s, color 0.17s;
+      transition: background 0.18s, border 0.18s, box-shadow 0.22s, color 0.13s;
       outline: none;
       margin-bottom: 0;
     }
     .mode-btn.selected,
     .mode-btn:hover {
-      background: linear-gradient(90deg, #1a375c 0%, #6c3af5 100%);
-      border-color: #6ec2fa;
+      background: linear-gradient(90deg, #1a375c 0%, #1ef9ff 100%);
+      border-color: #1ef9ff;
       color: #fff;
-      box-shadow: 0 4px 26px #51eaff29, 0 2px 14px #4e4cff12;
+      box-shadow: 0 4px 32px #1ef9ff29, 0 2px 14px #49f8;
     }
-    .mode-btn span {
-      font-size: 1.08em;
-    }
+    .mode-btn span { font-size: 1.08em; }
     .search-form {
       width: 100%;
       display: flex;
@@ -247,9 +200,9 @@ module.exports = function handler(req, res) {
       width: 100%;
       border-radius: 10px;
       padding: 1.04rem 1.1rem;
-      background: rgba(40,44,64,0.89);
+      background: rgba(40,44,64,0.91);
       color: #f3fcff;
-      border: 1.5px solid #334b85;
+      border: 1.7px solid #232e4e;
       font-size: 1.04rem;
       margin-bottom: 0;
       transition: border 0.17s, background 0.13s;
@@ -258,31 +211,31 @@ module.exports = function handler(req, res) {
     }
     .search-form input:focus, .search-form select:focus {
       outline: none;
-      border-color: #7ee8ff;
-      background: rgba(40,44,94,0.97);
+      border-color: #1ef9ff;
+      background: rgba(40,44,94,0.98);
     }
     .btn-shimmer {
-      background: linear-gradient(90deg, #5cc8fa 0, #838cf7 100%);
+      background: linear-gradient(90deg, #4bf9ff 0, #7c6ffc 100%);
       position: relative;
       overflow: hidden;
-      color: #222243;
-      font-weight: 700;
+      color: #151a2b;
+      font-weight: 800;
       border-radius: 13px;
       font-size: 1.25rem;
       padding: 1.06rem 0;
       width: 100%;
       letter-spacing: 0.03em;
       border: none;
-      box-shadow: 0 6px 22px #0002;
+      box-shadow: 0 6px 22px #0ff2;
       cursor: pointer;
       margin-top: 0.6rem;
       margin-bottom: 0.1rem;
       transition: box-shadow .18s, background .28s, color .18s;
     }
     .btn-shimmer:disabled {
-      opacity: 0.6;
+      opacity: 0.7;
       cursor: not-allowed;
-      background: #333;
+      background: #444;
       color: #999;
     }
     .btn-shimmer:after {
@@ -291,15 +244,15 @@ module.exports = function handler(req, res) {
       position: absolute;
       left: -120px; top: 0; bottom: 0;
       width: 70px;
-      background: linear-gradient(120deg, #fff9 30%, #fff3 70%, transparent 100%);
+      background: linear-gradient(120deg, #fff7 30%, #fff3 70%, transparent 100%);
       transform: skewX(-22deg);
       opacity: 0;
       pointer-events: none;
     }
     .btn-shimmer:hover:not(:disabled) {
-      box-shadow: 0 8px 32px #60e2ff38;
-      background: linear-gradient(90deg, #85e7ff 0, #918cfc 100%);
-      color: #0b1125;
+      box-shadow: 0 8px 32px #3af9ff48;
+      background: linear-gradient(90deg, #69faff 0, #a79cfc 100%);
+      color: #191e33;
     }
     .btn-shimmer:hover:not(:disabled):after {
       left: 140px;
@@ -309,12 +262,13 @@ module.exports = function handler(req, res) {
     .results {
       margin-top: 2.3rem;
       width: 100%;
-      background: rgba(34,41,66,0.84);
-      border-radius: 19px;
-      padding: 1.5rem 1.3rem 1.4rem 1.3rem;
-      box-shadow: 0 2px 14px #50ccff15;
+      background: rgba(34,41,66,0.86);
+      border-radius: 22px;
+      padding: 1.7rem 1.35rem 1.4rem 1.35rem;
+      box-shadow: 0 2px 22px #1ef9ff1c;
       text-align: left;
       animation: fadeInUp 1s cubic-bezier(.23,.6,.5,1) 0.08s both;
+      backdrop-filter: blur(1.5px);
     }
     .loading {
       text-align: center;
@@ -331,7 +285,7 @@ module.exports = function handler(req, res) {
     }
     .progress-bar {
       height: 100%;
-      background: linear-gradient(90deg, #5cc8fa 0%, #838cf7 100%);
+      background: linear-gradient(90deg, #1ef9ff 0%, #b2a6ff 100%);
       border-radius: 10px;
       transition: width 0.3s ease;
       position: relative;
@@ -348,9 +302,9 @@ module.exports = function handler(req, res) {
       100% { transform: translateX(100%); }
     }
     .spinner {
-      border: 3.5px solid #2f335c;
+      border: 3.5px solid #232e4e;
       border-radius: 50%;
-      border-top: 3.5px solid #89dfff;
+      border-top: 3.5px solid #1ef9ff;
       width: 41px;
       height: 41px;
       animation: spin 1.13s linear infinite;
@@ -358,19 +312,43 @@ module.exports = function handler(req, res) {
     }
     @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
     .rank-card {
-      background: rgba(36,46,76,0.69);
+      background: rgba(36,46,76,0.76);
       padding: 1rem 0.95rem;
-      margin: 0.46rem 0;
-      border-radius: 12px;
-      border: 1px solid rgba(91,161,255,0.09);
+      margin: 0.55rem 0;
+      border-radius: 15px;
+      border: 1.6px solid rgba(91,161,255,0.13);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 1px 6px #34eaff08;
-      animation: slideInLeft 0.5s ease;
+      box-shadow: 0 1px 8px #1ef9ff14;
+      animation: slideInLeft 0.6s cubic-bezier(.23,.6,.5,1) both;
+      backdrop-filter: blur(0.5px);
+    }
+    .rank-card.gold {
+      border: 2.5px solid #ffd700cc !important;
+      box-shadow: 0 0 14px #ffd70044;
+    }
+    .rank-card.silver {
+      border: 2.5px solid #e0e5ebcc !important;
+      box-shadow: 0 0 12px #e0e5eb55;
+    }
+    .rank-card.bronze {
+      border: 2.5px solid #df964ecc !important;
+      box-shadow: 0 0 10px #df964e44;
+    }
+    .project-icon {
+      width: 35px; height: 35px;
+      border-radius: 50%;
+      margin-right: 1.0em;
+      box-shadow: 0 1px 6px #00fff21a;
+      object-fit: cover;
+      border: 1.4px solid #232e4e;
+      background: #18213b;
+      display: inline-block;
+      vertical-align: middle;
     }
     @keyframes slideInLeft {
-      from { opacity: 0; transform: translateX(-20px); }
+      from { opacity: 0; transform: translateX(-30px); }
       to { opacity: 1; transform: translateX(0); }
     }
     .error {
@@ -385,59 +363,39 @@ module.exports = function handler(req, res) {
     .cache-indicator {
       position: absolute;
       top: 10px; left: 10px;
-      background: rgba(76, 175, 80, 0.2);
-      color: #4caf50;
+      background: rgba(76, 175, 80, 0.18);
+      color: #1ef9ff;
       padding: 4px 8px;
       border-radius: 12px;
       font-size: 0.8rem;
-      border: 1px solid #4caf50;
+      border: 1px solid #1ef9ff;
     }
     .footer {
       margin-top: 2.1rem;
       opacity: 0.74;
       font-size: 0.97rem;
       text-align: center;
-      color: #cedcff;
+      color: #b9eaff;
     }
+    .share-btn {
+      margin: 0.5em 0 0 0; background: linear-gradient(90deg,#1ef9ff,#b683ff 90%);
+      color: #232e4e; font-weight: 700; border-radius: 11px;
+      border: none; padding: 0.53em 1.3em; font-size:1.13em;
+      cursor: pointer; box-shadow: 0 2px 12px #1ef9ff26;
+      transition: background 0.15s, color 0.12s;
+    }
+    .share-btn:hover { background: linear-gradient(90deg,#b683ff,#1ef9ff 90%); color:#1a2b45;}
     @media (max-width: 600px) {
-      .container { padding: 2.1rem 0.5rem 1.1rem 0.5rem; max-width: 98vw; border-radius: 19px; margin-top: 26px;}
-      h1 { font-size: 2.1rem; }
+      .container { padding: 2.1rem 0.5rem 1.1rem 0.5rem; max-width: 99vw; border-radius: 17px; margin-top: 26px;}
+      .kaito-gradient { font-size: 1.38rem; }
       .modes-list { gap: 0.7rem; }
       .results { padding: 1.1rem 0.35rem;}
-      .by-over { right: 14px; top: 15px; font-size: 1.05rem;}
-      .faq-btn { left: 11px; top: 11px; width:32px;height:32px;}
-      .faq-popup { left: 10px; top: 51px; padding: 0.8em 0.85em 0.9em 0.95em; }
-      .lang-switch { right: 8px; top: 10px; font-size:1.01rem;}
+      .by-over { right: 12px; top: 13px; font-size: 0.98rem;}
+      .faq-btn { left: 8px; top: 9px; width:31px;height:31px;}
+      .faq-popup { left: 5px; top: 48px; padding: 0.7em 0.65em 0.8em 0.85em; }
+      .lang-switch { right: 3px; top: 7px; font-size:0.99rem;}
+      .project-icon { width: 28px; height: 28px;}
     }
-.kaito-gradient {
-  font-weight: 800;
-  font-size: 2.8rem;
-  line-height: 1.13;
-  background: linear-gradient(90deg,#6dc6ff 5%, #b683ff 50%, #55fff8 95%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-fill-color: transparent;
-  animation: shimmerText 4s linear infinite;
-  letter-spacing: 0.03em;
-  margin-bottom: 0.7em;
-  margin-top: 0.25em;
-  display: block;
-  text-align: left;
-}
-@keyframes shimmerText {
-  0% {background-position: 0%;}
-  100% {background-position: 200%;}
-}
-.kaito-subtitle,
-.kaito-sub2,
-.desc-light {
-  color: #e6f4ff !important;
-  text-shadow: 0 0 8px #111a, 0 0 1px #82eaff7a;
-  opacity: 0.94;
-}
-
   </style>
 </head>
 <body>
@@ -446,12 +404,12 @@ module.exports = function handler(req, res) {
     <svg class="waves" viewBox="0 0 1440 500" preserveAspectRatio="none">
       <defs>
         <linearGradient id="gradient" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0%" stop-color="#40e6ff" stop-opacity="0.22"/>
+          <stop offset="0%" stop-color="#1ef9ff" stop-opacity="0.19"/>
           <stop offset="100%" stop-color="#002045" stop-opacity="0"/>
         </linearGradient>
       </defs>
       <path d="M0,350 Q360,290 720,350 T1440,350 V500 H0 Z" fill="url(#gradient)">
-        <animate attributeName="d" dur="10s" repeatCount="indefinite"
+        <animate attributeName="d" dur="11s" repeatCount="indefinite"
           values="M0,350 Q360,290 720,350 T1440,350 V500 H0 Z;
                   M0,370 Q360,330 720,320 T1440,340 V500 H0 Z;
                   M0,340 Q360,380 720,320 T1440,370 V500 H0 Z;
@@ -471,14 +429,13 @@ module.exports = function handler(req, res) {
         Enter your Twitter username, select the search mode and start search. The service will show your TOP positions across 50+ trending crypto projects. Results are cached for better performance.
       </div>
     </div>
-    <span class="kaito-gradient">Kaito Rank Tracker</span>
-<div class="kaito-subtitle desc-light" id="mainSubtitle">
-  Find your rankings across 50+ TOP trending crypto projects
-</div>
-<div class="kaito-sub2 desc-light" id="mainSub2">
-  Updated daily. Real Kaito data. Better insights.
-</div>
-
+    <span class="kaito-gradient" id="mainTitle">Kaito Rank Tracker</span>
+    <div class="kaito-subtitle desc-light" id="mainSubtitle">
+      Find your rankings across 50+ TOP trending crypto projects
+    </div>
+    <div class="kaito-sub2 desc-light" id="mainSub2">
+      Updated daily. Real Kaito data. Better insights.
+    </div>
     <form class="search-form" id="searchForm" autocomplete="off">
       <input 
         type="text" 
@@ -486,7 +443,7 @@ module.exports = function handler(req, res) {
         placeholder="Enter Twitter username (@teddi_speaks)" 
         required
         maxlength="18"
-        style="margin-top:1.8em;"
+        style="margin-top:1.7em;"
       >
       <div class="modes-list" id="modesList">
         <button class="mode-btn selected" data-mode="lightning" type="button">⚡ Lightning <span>(15)</span></button>
@@ -496,14 +453,15 @@ module.exports = function handler(req, res) {
       </div>
       <button type="submit" class="btn-shimmer" id="searchBtn">START SEARCH</button>
     </form>
+    <button class="share-btn" id="shareBtn" style="display:none;">Share</button>
     <div id="results"></div>
     <div class="footer" id="footerTxt">
       Made by OveR // Kaito Community
     </div>
   </div>
   <script>
-    // Оставил полностью твой JS без изменений (FAQ, Lang, поиск, результаты)
-    ${String.raw`class KaitoRankTrackerApp {
+    // JS (оставил весь твой функционал, добавил цветные рамки + social share)
+    class KaitoRankTrackerApp {
       constructor() {
         this.currentLang = "EN";
         this.selectedMode = "lightning";
@@ -549,6 +507,19 @@ module.exports = function handler(req, res) {
             this.validateUsername(e.target.value);
           }, 500);
         };
+        document.getElementById('shareBtn').onclick = () => {
+          if (navigator.share) {
+            navigator.share({
+              title: "Kaito Rank Tracker",
+              text: "Check out my crypto rankings!",
+              url: window.location.href
+            });
+          } else {
+            navigator.clipboard.writeText(window.location.href);
+            document.getElementById('shareBtn').textContent = "Copied!";
+            setTimeout(()=>{document.getElementById('shareBtn').textContent="Share"},1200)
+          }
+        }
       }
       validateUsername(username) {
         const cleanUsername = username.replace('@', '').trim();
@@ -557,7 +528,7 @@ module.exports = function handler(req, res) {
         if (cleanUsername && !isValid) {
           input.style.borderColor = '#ff6b6b';
         } else {
-          input.style.borderColor = '#334b85';
+          input.style.borderColor = '#232e4e';
         }
       }
       switchLang(lang) {
@@ -628,6 +599,7 @@ module.exports = function handler(req, res) {
         const cachedResult = this.cache.get(cacheKey);
         if (cachedResult && (Date.now() - cachedResult.timestamp) < 30 * 60 * 1000) {
           this.displayResults(cachedResult.data, true);
+          document.getElementById('shareBtn').style.display = "inline-block";
           return;
         }
         this.searchInProgress = true;
@@ -649,6 +621,7 @@ module.exports = function handler(req, res) {
               timestamp: Date.now()
             });
             this.displayResults(data.data, false);
+            document.getElementById('shareBtn').style.display = "inline-block";
           } else {
             throw new Error(data.error || (this.currentLang === "EN" ? "Search failed" : "Поиск не удался"));
           }
@@ -691,17 +664,21 @@ module.exports = function handler(req, res) {
         }
         const { user, stats, rankings, analysis } = data;
         const resultsDiv = document.getElementById('results');
-        let html = '<div style="position: relative;">' + (fromCache ? '<div class="cache-indicator">📦 Cached</div>' : '') + '<h3 style="font-size:1.24rem; color:#71eaff; margin-bottom:1.1em;">' + (this.currentLang === "EN" ? "📊 Results for" : "📊 Результаты для") + ' <b>' + user.username + '</b></h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;"><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Projects Found" : "Проектов найдено") + '</strong><br><span style="font-size:1.5rem; color:#4caf50;">' + stats.found_in + '</span><span style="color:#999;">/' + stats.total_projects + '</span></div></div><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Processing Time" : "Время обработки") + '</strong><br><span style="font-size:1.5rem;">' + stats.processing_time + 's</span></div></div>';
+        let html = '<div style="position: relative;">' + (fromCache ? '<div class="cache-indicator">📦 Cached</div>' : '') + '<h3 style="font-size:1.24rem; color:#1ef9ff; margin-bottom:1.1em;">' + (this.currentLang === "EN" ? "📊 Results for" : "📊 Результаты для") + ' <b>' + user.username + '</b></h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;"><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Projects Found" : "Проектов найдено") + '</strong><br><span style="font-size:1.5rem; color:#18ffe7;">' + stats.found_in + '</span><span style="color:#999;">/' + stats.total_projects + '</span></div></div><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Processing Time" : "Время обработки") + '</strong><br><span style="font-size:1.5rem;">' + stats.processing_time + 's</span></div></div>';
         if (analysis && analysis.best_rank) {
-          html += '<div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Best Rank" : "Лучший ранг") + '</strong><br><span style="font-size:1.5rem; color:#ffd700;">#' + analysis.best_rank + '</span></div></div><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Performance" : "Перформанс") + '</strong><br><span style="font-size:1.2rem; text-transform:capitalize; color:#4ecdc4;">' + analysis.performance_level + '</span></div></div>';
+          html += '<div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Best Rank" : "Лучший ранг") + '</strong><br><span style="font-size:1.5rem; color:#ffd700;">#' + analysis.best_rank + '</span></div></div><div class="rank-card"><div><strong>' + (this.currentLang === "EN" ? "Performance" : "Перформанс") + '</strong><br><span style="font-size:1.2rem; text-transform:capitalize; color:#18ffe7;">' + analysis.performance_level + '</span></div></div>';
         }
         html += '</div>';
         if (rankings && rankings.length > 0) {
-          html += '<h4 style="margin-top:1.3em; color:#7ee2ff;">' + (this.currentLang === "EN" ? "🎯 Rankings Found:" : "🎯 Найденные ранги:") + '</h4>';
+          html += '<h4 style="margin-top:1.3em; color:#b8faff;">' + (this.currentLang === "EN" ? "🎯 Rankings Found:" : "🎯 Найденные ранги:") + '</h4>';
           rankings.forEach((rank, index) => {
+            let cardClass = '';
+            if (index === 0) cardClass = 'gold';
+            else if (index === 1) cardClass = 'silver';
+            else if (index === 2) cardClass = 'bronze';
             const emoji = ['🥇','🥈','🥉','4️⃣','5️⃣'][index] || '📊';
             const tierIcon = rank.tier === 'top' ? '🔥' : rank.tier === 'high' ? '⚡' : rank.tier === 'mid' ? '🚀' : '💎';
-            html += '<div class="rank-card" style="animation-delay: ' + (index * 0.1) + 's;"><div><strong>' + emoji + ' ' + rank.project + '</strong><br><small style="color:#88e6ff;">' + rank.tier.toUpperCase() + ' tier • ' + rank.trending_percentage + '% trending</small></div><div style="text-align:right;"><strong style="color:#ffd700;">#' + rank.rank + '</strong> ' + tierIcon + '<br><small style="color:#999;">' + rank.total_users_checked + ' users</small></div></div>';
+            html += '<div class="rank-card '+cardClass+'" style="animation-delay: ' + (index * 0.11) + 's;"><img class="project-icon" src="https://cryptologos.cc/logos/'+encodeURIComponent(rank.project.toLowerCase().replace(/ /g,'-'))+'-logo.png?v=031" alt="'+rank.project+' logo"/><div><strong>' + emoji + ' ' + rank.project + '</strong><br><small style="color:#88e6ff;">' + rank.tier.toUpperCase() + ' tier • ' + rank.trending_percentage + '% trending</small></div><div style="text-align:right;"><strong style="color:#ffd700;">#' + rank.rank + '</strong> ' + tierIcon + '<br><small style="color:#999;">' + rank.total_users_checked + ' users</small></div></div>';
           });
           if (analysis && analysis.recommendations && analysis.recommendations.length > 0) {
             html += '<h4 style="color:#ffe877;margin:1.3em 0 0.2em 0;">' + (this.currentLang === "EN" ? "💡 Recommendations:" : "💡 Рекомендации:") + '</h4><ul style="color:#c8e6ff; opacity:0.9;">';
@@ -717,7 +694,7 @@ module.exports = function handler(req, res) {
         resultsDiv.innerHTML = html;
       }
     }
-    new KaitoRankTrackerApp();`}
+    new KaitoRankTrackerApp();
   </script>
 </body>
 </html>
