@@ -14,6 +14,31 @@ class EnhancedKaitoAPI {
           'Accept-Language': 'en-US,en;q=0.9',
           'Referer': 'https://kaito.ai/'
         }
+
+  // НОВАЯ ФУНКЦИЯ: Получение списка всех доступных проектов
+  async getAllProjects() {
+    // Убеждаемся что проекты инициализированы
+    if (this.projects.length === 0) {
+      await this.initializeProjects();
+    }
+
+    return {
+      projects: this.projects.map(project => ({
+        id: project.id,
+        name: project.name,
+        tier: project.tier,
+        ticker: this.tickerMapping[project.id] || project.id
+      })),
+      total: this.projects.length,
+      tiers: {
+        top: this.projects.filter(p => p.tier === 'top').length,
+        high: this.projects.filter(p => p.tier === 'high').length,
+        mid: this.projects.filter(p => p.tier === 'mid').length,
+        emerging: this.projects.filter(p => p.tier === 'emerging').length
+      },
+      source: this.projects.length > 30 ? 'dynamic' : 'fallback'
+    };
+  }
       },
       {
         name: 'alternative',
@@ -624,15 +649,35 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
   
+  // НОВОЕ: GET запрос для получения списка проектов
+  if (req.method === 'GET') {
+    try {
+      const api = new EnhancedKaitoAPI();
+      const projectsData = await api.getAllProjects();
+      
+      return res.status(200).json({
+        success: true,
+        method: 'get_projects',
+        data: projectsData
+      });
+    } catch (error) {
+      console.error('[Handler] GET Projects Error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to get projects list'
+      });
+    }
+  }
+  
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
-      error: 'Method not allowed. Use POST.'
+      error: 'Method not allowed. Use POST for search or GET for projects list.'
     });
   }
   
   try {
-    const { username, mode = 'standard' } = req.body;
+    const { username, mode = 'standard', selectedProjects = [] } = req.body;
     
     if (!username || typeof username !== 'string') {
       return res.status(400).json({
@@ -656,19 +701,34 @@ export default async function handler(req, res) {
       });
     }
 
+    // Валидация selectedProjects
+    if (selectedProjects && !Array.isArray(selectedProjects)) {
+      return res.status(400).json({
+        success: false,
+        error: 'selectedProjects must be an array'
+      });
+    }
+
+    // Логирование для отладки
+    if (selectedProjects.length > 0) {
+      console.log(`[Handler] Custom search requested: ${selectedProjects.length} projects selected`);
+      console.log(`[Handler] Selected projects: ${selectedProjects.join(', ')}`);
+    }
+
     const startTime = Date.now();
     const api = new EnhancedKaitoAPI();
     
     console.log(`[Handler] Starting enhanced search for ${cleanUsername} in ${mode} mode`);
     
-    const searchResult = await api.searchUserInAllProjects(cleanUsername, mode);
+    // ОБНОВЛЕННЫЙ ВЫЗОВ с поддержкой selectedProjects
+    const searchResult = await api.searchUserInAllProjects(cleanUsername, mode, selectedProjects);
     const analysis = api.generateAnalysis(searchResult.rankings);
     
     const processingTime = Math.round((Date.now() - startTime) / 1000);
 
     const response = {
       success: true,
-      method: 'enhanced_aggregation_v2',
+      method: 'enhanced_aggregation_v3', // Обновили версию
       data: {
         user: {
           input: username,
@@ -677,7 +737,8 @@ export default async function handler(req, res) {
         },
         mode: { 
           name: mode, 
-          projects: searchResult.stats.total_projects
+          projects: searchResult.stats.total_projects,
+          search_type: searchResult.stats.search_type // Новое поле
         },
         stats: {
           ...searchResult.stats,
@@ -688,7 +749,8 @@ export default async function handler(req, res) {
       }
     };
 
-    console.log(`[Handler] ✅ Enhanced search completed: ${searchResult.rankings.length} found, ${searchResult.stats.success_rate}% success rate (${searchResult.stats.project_source} projects)`);
+    const searchType = selectedProjects.length > 0 ? 'custom' : mode;
+    console.log(`[Handler] ✅ Enhanced search completed: ${searchResult.rankings.length} found, ${searchResult.stats.success_rate}% success rate (${searchType} search)`);
 
     res.status(200).json(response);
 
