@@ -14,31 +14,6 @@ class EnhancedKaitoAPI {
           'Accept-Language': 'en-US,en;q=0.9',
           'Referer': 'https://kaito.ai/'
         }
-
-  // НОВАЯ ФУНКЦИЯ: Получение списка всех доступных проектов
-  async getAllProjects() {
-    // Убеждаемся что проекты инициализированы
-    if (this.projects.length === 0) {
-      await this.initializeProjects();
-    }
-
-    return {
-      projects: this.projects.map(project => ({
-        id: project.id,
-        name: project.name,
-        tier: project.tier,
-        ticker: this.tickerMapping[project.id] || project.id
-      })),
-      total: this.projects.length,
-      tiers: {
-        top: this.projects.filter(p => p.tier === 'top').length,
-        high: this.projects.filter(p => p.tier === 'high').length,
-        mid: this.projects.filter(p => p.tier === 'mid').length,
-        emerging: this.projects.filter(p => p.tier === 'emerging').length
-      },
-      source: this.projects.length > 30 ? 'dynamic' : 'fallback'
-    };
-  }
       },
       {
         name: 'alternative',
@@ -136,6 +111,50 @@ class EnhancedKaitoAPI {
     this.cache = new Map();
     this.cacheExpiry = 30 * 60 * 1000; // 30 минут
     this.projectsCacheExpiry = 6 * 60 * 60 * 1000; // 6 часов для списка проектов
+    this.maxCacheSize = 1000; // Максимальный размер кэша
+  }
+
+  // Очистка старых записей из кэша
+  cleanupCache() {
+    const now = Date.now();
+    for (const [key, value] of this.cache.entries()) {
+      if (now - value.timestamp > this.cacheExpiry) {
+        this.cache.delete(key);
+      }
+    }
+    
+    // Если кэш все еще слишком большой, удаляем самые старые записи
+    if (this.cache.size > this.maxCacheSize) {
+      const entries = Array.from(this.cache.entries());
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+      const toDelete = entries.slice(0, this.cache.size - this.maxCacheSize);
+      toDelete.forEach(([key]) => this.cache.delete(key));
+    }
+  }
+
+  // НОВАЯ ФУНКЦИЯ: Получение списка всех доступных проектов
+  async getAllProjects() {
+    // Убеждаемся что проекты инициализированы
+    if (this.projects.length === 0) {
+      await this.initializeProjects();
+    }
+
+    return {
+      projects: this.projects.map(project => ({
+        id: project.id,
+        name: project.name,
+        tier: project.tier,
+        ticker: this.tickerMapping[project.id] || project.id
+      })),
+      total: this.projects.length,
+      tiers: {
+        top: this.projects.filter(p => p.tier === 'top').length,
+        high: this.projects.filter(p => p.tier === 'high').length,
+        mid: this.projects.filter(p => p.tier === 'mid').length,
+        emerging: this.projects.filter(p => p.tier === 'emerging').length
+      },
+      source: this.projects.length > 30 ? 'dynamic' : 'fallback'
+    };
   }
 
   // НОВАЯ ФУНКЦИЯ: Автоматическое получение списка популярных проектов
@@ -358,7 +377,7 @@ class EnhancedKaitoAPI {
     }
   }
 
-  // Остальные методы остаются без изменений...
+  // Получение данных пользователя
   async getUserData(username) {
     try {
       const url = `${this.dataSources[2].baseURL}/leaderboard-search?username=${encodeURIComponent(username)}`;
@@ -418,6 +437,9 @@ class EnhancedKaitoAPI {
       console.log(`[Cache] Hit for ${ticker}`);
       return cached.data;
     }
+
+    // Очищаем кэш при необходимости
+    this.cleanupCache();
 
     try {
       const url = `${this.dataSources[2].baseURL}/leaderboard-rank-mindshare?ticker=${ticker}`;
@@ -487,7 +509,7 @@ class EnhancedKaitoAPI {
     };
   }
 
-  async searchUserInAllProjects(username, mode = 'standard') {
+  async searchUserInAllProjects(username, mode = 'standard', selectedProjects = []) {
     // Убеждаемся что проекты инициализированы
     if (this.projects.length === 0) {
       await this.initializeProjects();
@@ -500,8 +522,22 @@ class EnhancedKaitoAPI {
       ultimate: 50
     };
     
-    const projectCount = limits[mode] || 25;
-    const projectsToCheck = this.projects.slice(0, projectCount);
+    let projectsToCheck;
+    let searchType = mode;
+
+    // Проверяем, есть ли кастомный список проектов
+    if (selectedProjects && selectedProjects.length > 0) {
+      // Фильтруем доступные проекты по выбранным
+      projectsToCheck = this.projects.filter(project => 
+        selectedProjects.includes(project.id) || selectedProjects.includes(project.name)
+      );
+      searchType = 'custom';
+      console.log(`[Search] Using custom project selection: ${projectsToCheck.length} projects`);
+    } else {
+      // Стандартный поиск по лимиту
+      const projectCount = limits[mode] || 25;
+      projectsToCheck = this.projects.slice(0, projectCount);
+    }
     
     console.log(`[Search] Starting enhanced search for ${username} in ${projectsToCheck.length} projects`);
     console.log(`[Search] Using ${this.projects.length > 30 ? 'DYNAMIC' : 'FALLBACK'} project list`);
@@ -517,7 +553,8 @@ class EnhancedKaitoAPI {
           not_found: projectsToCheck.length,
           errors: 0,
           success_rate: 0,
-          project_source: this.projects.length > 30 ? 'dynamic' : 'fallback'
+          project_source: this.projects.length > 30 ? 'dynamic' : 'fallback',
+          search_type: searchType
         }
       };
     }
@@ -583,7 +620,8 @@ class EnhancedKaitoAPI {
         not_found: successCount - results.length,
         errors: errorCount,
         success_rate: Math.round((successCount / projectsToCheck.length) * 100),
-        project_source: this.projects.length > 30 ? 'dynamic' : 'fallback'
+        project_source: this.projects.length > 30 ? 'dynamic' : 'fallback',
+        search_type: searchType
       }
     };
   }
