@@ -1,321 +1,186 @@
 'use client';
+import { useState, useEffect } from 'react';
 
-import { useState } from 'react';
-import { Search, TrendingUp, Zap } from 'lucide-react';
-
-interface SearchResult {
-  user: { username: string; found: boolean };
-  rankings: Array<{
-    project: string;
-    rank: number;
-    tier: string;
-    mindshare: number;
-    timeframe: string;
-  }>;
-  stats: {
-    total_searched: number;
-    found_in: number;
-    best_rank: number | null;
-    avg_mindshare: number;
-  };
+interface Project {
+  id: number;
+  name: string;
+  ticker: string;
+  category: string;
+  imgUrl: string;
 }
 
 export default function Home() {
   const [username, setUsername] = useState('');
-  const [timeframe, setTimeframe] = useState<'7D' | '30D' | '3M'>('30D');
-  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-  const [result, setResult] = useState<SearchResult | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [results, setResults] = useState<any>(null);
+  const [loadingProjects, setLoadingProjects] = useState(true);
 
-  // Top 20 most popular projects for quick selection
-  const topProjects = [
-    'PUMP', 'NEWTON', 'MITOSIS', 'STORYPROTOCOL', 'CAMP', 'ANOMA',
-    'HYPERLIQUID', 'VIRTUALS', 'CALDERA', 'UNION', 'INFINEX', 'MEGAETH',
-    'BOUNDLESS', 'BLS', 'MIRA', 'BERACHAIN', 'PARALLEL', 'AETHIR',
-    'GRASS', 'PUDGYPENGUINS'
-  ];
+  useEffect(() => {
+    fetch('https://gomtu.xyz/api/kaito/leaderboard')
+      .then(r => r.json())
+      .then(d => {
+        setProjects(d.data || []);
+        setLoadingProjects(false);
+      })
+      .catch(() => setLoadingProjects(false));
+  }, []);
 
-  const handleSearch = async () => {
-    if (!username.trim()) {
-      setError('Please enter a username');
-      return;
-    }
+  const toggle = (ticker: string) => {
+    setSelected(prev => 
+      prev.includes(ticker) ? prev.filter(p => p !== ticker) : 
+      prev.length < 10 ? [...prev, ticker] : prev
+    );
+  };
 
-    if (selectedProjects.length === 0) {
-      setError('Please select at least one project');
-      return;
-    }
-
-    if (selectedProjects.length > 10) {
-      setError('Maximum 10 projects allowed');
-      return;
-    }
-
+  const search = async () => {
+    if (!username || selected.length === 0) return;
     setLoading(true);
-    setError('');
-    setResult(null);
+    setResults(null);
 
     try {
-      const response = await fetch('/api/search', {
+      const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: username.replace('@', ''),
-          timeframe,
-          projects: selectedProjects
-        })
+        body: JSON.stringify({ username, projects: selected })
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Search failed');
-      }
-
-      setResult(data.data);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+      const data = await res.json();
+      setResults(data.data);
+    } catch (err) {
+      alert('Error searching');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleProject = (project: string) => {
-    setSelectedProjects(prev => {
-      if (prev.includes(project)) {
-        return prev.filter(p => p !== project);
-      }
-      if (prev.length >= 10) {
-        setError('Maximum 10 projects allowed');
-        return prev;
-      }
-      setError('');
-      return [...prev, project];
-    });
-  };
-
   const getRankColor = (rank: number) => {
-    if (rank <= 10) return 'text-yellow-400';
-    if (rank <= 25) return 'text-cyan-400';
-    if (rank <= 50) return 'text-blue-400';
+    if (rank <= 10) return 'text-yellow-400 font-bold';
+    if (rank <= 50) return 'text-green-400';
+    if (rank <= 100) return 'text-blue-400';
     return 'text-gray-400';
   };
 
-  const getRankBadge = (index: number) => {
-    if (index === 0) return '🥇';
-    if (index === 1) return '🥈';
-    if (index === 2) return '🥉';
-    return `${index + 1}`;
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950">
-      {/* Animated background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-      </div>
-
-      <div className="relative max-w-6xl mx-auto px-4 py-12">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4">
+      <div className="max-w-6xl mx-auto py-8">
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <TrendingUp className="w-10 h-10 text-cyan-400" />
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Kaito Rank Tracker
-            </h1>
-          </div>
-          <p className="text-slate-400 text-lg">
-            Find your rankings across top crypto projects
-          </p>
-          <p className="text-slate-500 text-sm mt-2">
-            Search up to 10 projects • Multi-timeframe support • Real-time data
-          </p>
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+            Kaito Rank Tracker V2
+          </h1>
+          <p className="text-gray-400">Search across 130+ crypto projects</p>
         </div>
 
-        {/* Search Section */}
-        <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-slate-800 shadow-2xl mb-8">
-          {/* Username Input */}
+        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-purple-500/30">
           <div className="mb-6">
-            <label className="block text-slate-300 mb-2 font-medium">
-              Twitter Username
+            <label className="block text-sm font-semibold mb-2">Twitter Username</label>
+            <input
+              type="text"
+              placeholder="@username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-900 rounded-xl border border-purple-500/30 focus:border-purple-500 outline-none"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-2">
+              Select Projects ({selected.length}/10)
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="@username"
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-            </div>
-          </div>
-
-          {/* Timeframe Selector */}
-          <div className="mb-6">
-            <label className="block text-slate-300 mb-3 font-medium">
-              Timeframe
-            </label>
-            <div className="flex gap-3">
-              {(['7D', '30D', '3M'] as const).map((tf) => (
-                <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
-                    timeframe === tf
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25'
-                      : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-300'
-                  }`}
-                >
-                  {tf}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Project Selection */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-slate-300 font-medium">
-                Select Projects (max 10)
-              </label>
-              <span className="text-sm text-slate-500">
-                {selectedProjects.length}/10 selected
-              </span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 bg-slate-800/30 rounded-xl">
-              {topProjects.map((project) => (
-                <button
-                  key={project}
-                  onClick={() => toggleProject(project)}
-                  className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                    selectedProjects.includes(project)
-                      ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/25'
-                      : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-slate-300'
-                  }`}
-                >
-                  {project}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Search Button */}
-          <button
-            onClick={handleSearch}
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:from-slate-700 disabled:to-slate-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 disabled:shadow-none flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Searching...
-              </>
+            {loadingProjects ? (
+              <p className="text-gray-400">Loading projects...</p>
             ) : (
-              <>
-                <Zap className="w-5 h-5" />
-                Search Rankings
-              </>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+                {projects.slice(0, 50).map(p => (
+                  <button
+                    key={p.ticker}
+                    onClick={() => toggle(p.ticker)}
+                    className={`px-3 py-2 rounded-lg text-sm transition ${
+                      selected.includes(p.ticker)
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-slate-700 hover:bg-slate-600'
+                    }`}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+              </div>
             )}
+          </div>
+
+          <button
+            onClick={search}
+            disabled={loading || !username || selected.length === 0}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold hover:opacity-90 transition disabled:opacity-50"
+          >
+            {loading ? 'Searching...' : 'Search Rankings'}
           </button>
         </div>
 
-        {/* Results Section */}
-        {result && (
-          <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl p-8 border border-slate-800 shadow-2xl">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                <div className="text-slate-400 text-sm mb-1">Found In</div>
-                <div className="text-2xl font-bold text-white">
-                  {result.stats.found_in}/{result.stats.total_searched}
+        {results && (
+          <div className="space-y-6">
+            <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+              <h2 className="text-2xl font-bold mb-4">
+                Results for @{results.user.username}
+              </h2>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-gray-400 text-sm">Projects Found</p>
+                  <p className="text-3xl font-bold text-purple-400">{results.stats.total_projects}</p>
                 </div>
-                <div className="text-cyan-400 text-xs mt-1">projects</div>
-              </div>
-              
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                <div className="text-slate-400 text-sm mb-1">Best Rank</div>
-                <div className={`text-2xl font-bold ${getRankColor(result.stats.best_rank || 999)}`}>
-                  {result.stats.best_rank ? `#${result.stats.best_rank}` : 'N/A'}
+                <div>
+                  <p className="text-gray-400 text-sm">Best Rank</p>
+                  <p className="text-3xl font-bold text-green-400">#{results.stats.best_rank}</p>
                 </div>
-                <div className="text-cyan-400 text-xs mt-1">position</div>
-              </div>
-              
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                <div className="text-slate-400 text-sm mb-1">Avg Mindshare</div>
-                <div className="text-2xl font-bold text-white">
-                  {result.stats.avg_mindshare.toFixed(3)}%
+                <div>
+                  <p className="text-gray-400 text-sm">Avg Mindshare</p>
+                  <p className="text-3xl font-bold text-blue-400">{results.stats.avg_mindshare.toFixed(2)}%</p>
                 </div>
-                <div className="text-cyan-400 text-xs mt-1">mindshare</div>
               </div>
             </div>
 
-            {/* Rankings Table */}
-            {result.rankings.length > 0 ? (
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-cyan-400" />
-                  Rankings Found
-                </h3>
-                <div className="space-y-3">
-                  {result.rankings.map((ranking, index) => (
-                    <div
-                      key={index}
-                      className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 hover:border-cyan-500/50 transition-all flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="text-2xl">{getRankBadge(index)}</div>
-                        <div>
-                          <div className="text-white font-semibold text-lg">
-                            {ranking.project}
-                          </div>
-                          <div className="text-slate-400 text-sm">
-                            {ranking.tier}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`text-2xl font-bold ${getRankColor(ranking.rank)}`}>
-                          #{ranking.rank}
-                        </div>
-                        <div className="text-slate-400 text-sm">
-                          {ranking.mindshare.toFixed(3)}% mindshare
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            <div className="space-y-4">
+              {results.rankings.map((r: any) => (
+                <div key={r.ticker} className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+                  <div className="flex items-center gap-3 mb-4">
+                    {r.imgUrl && (
+                      <img src={r.imgUrl} alt={r.project} className="w-10 h-10 rounded-full" />
+                    )}
+                    <h3 className="text-xl font-bold">{r.project}</h3>
+                    <span className="text-xs bg-purple-600 px-2 py-1 rounded">{r.ticker}</span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="text-left text-sm text-gray-400 border-b border-slate-700">
+                          <th className="pb-2">Time</th>
+                          <th className="pb-2">Rank</th>
+                          <th className="pb-2">Mindshare</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {r.timeframes.map((tf: any) => (
+                          <tr key={tf.duration} className="border-b border-slate-700/50">
+                            <td className="py-3 font-semibold">{tf.duration}</td>
+                            <td className={`py-3 text-lg ${getRankColor(tf.rank)}`}>#{tf.rank}</td>
+                            <td className="py-3 text-purple-400">{tf.mindshare.toFixed(2)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🔍</div>
-                <div className="text-xl text-slate-400 mb-2">No rankings found</div>
-                <div className="text-slate-500 text-sm">
-                  {result.user.username} was not found in the top 100 of selected projects
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         )}
-
-        {/* Footer */}
-        <div className="text-center mt-12 text-slate-500 text-sm">
-          <p>Made by @Over9725 • Data updates hourly</p>
-          <p className="mt-2">
-            Powered by Kaito AI • Not affiliated with Kaito
-          </p>
-        </div>
       </div>
+
+      <footer className="text-center text-gray-500 text-sm mt-12">
+        <p>Thanks to <a href="https://gomtu.xyz" className="text-purple-400 hover:underline">gomtu.xyz</a> & <a href="https://kaito.ai" className="text-purple-400 hover:underline">Kaito AI</a></p>
+        <p>Made by @Over9725</p>
+      </footer>
     </div>
   );
 }
