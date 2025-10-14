@@ -1,4 +1,4 @@
-// lib/kaito-api.ts - UPGRADED VERSION
+// lib/kaito-api.ts - FIXED
 interface Project {
   id: number;
   name: string;
@@ -34,7 +34,7 @@ export class SmartKaitoAPI {
   private cache = new Map<string, any>();
   private rateLimiter = { requests: [] as number[], maxRequests: 20, windowMs: 60000 };
 
-  private async checkRateLimit() {
+  private async checkRateLimit(): Promise<void> {
     const now = Date.now();
     this.rateLimiter.requests = this.rateLimiter.requests.filter(t => now - t < 60000);
     if (this.rateLimiter.requests.length >= 20) {
@@ -44,13 +44,13 @@ export class SmartKaitoAPI {
     this.rateLimiter.requests.push(now);
   }
 
-  private getCached(key: string) {
+  private getCached(key: string): any {
     const entry = this.cache.get(key);
     if (!entry || Date.now() - entry.ts > entry.ttl) return null;
     return entry.data;
   }
 
-  private setCache(key: string, data: any, ttl: number) {
+  private setCache(key: string, data: any, ttl: number): void {
     this.cache.set(key, { data, ts: Date.now(), ttl });
   }
 
@@ -68,7 +68,7 @@ export class SmartKaitoAPI {
     }
   }
 
-  private async fetchUserData(username: string) {
+  private async fetchUserData(username: string): Promise<any[]> {
     const cached = this.getCached(`user:${username}`);
     if (cached) return cached;
 
@@ -131,11 +131,11 @@ export class SmartKaitoAPI {
     };
   }
 
-  public async getAvailableProjects() {
+  public async getAvailableProjects(): Promise<Project[]> {
     return await this.fetchProjects();
   }
 
-  public cleanupCache() {
+  public cleanupCache(): void {
     const now = Date.now();
     for (const [k, v] of this.cache.entries()) {
       if (now - v.ts > v.ttl) this.cache.delete(k);
