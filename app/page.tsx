@@ -1,5 +1,10 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
+import Card from './components/Card';
+import Button from './components/Button';
+import Chip from './components/Chip';
+import Badge from './components/Badge';
+import Table from './components/Table';
 
 type Project = {
   id: number;
@@ -103,38 +108,27 @@ export default function Home() {
           </p>
         </header>
 
-        {/* MAIN CARD */}
-        <section className="card glass hover-lift">
-          {/* username */}
-          <div className="mb-5">
-            <label className="block text-xs uppercase tracking-wide text-slate-400 mb-2">Twitter Username</label>
-            <input
-              type="text"
-              placeholder="@Zun2025"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-950/70 rounded-xl border border-white/10 focus:border-cyan-500 outline-none"
-            />
+        {/* MAIN SEARCH */}
+        <Card glass glow>
+          <label className="block text-xs uppercase tracking-wide text-slate-400 mb-2">Twitter Username</label>
+          <input
+            type="text"
+            placeholder="@Zun2025"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            className="w-full px-4 py-3 bg-slate-950/70 rounded-xl border border-white/10 focus:border-cyan-500 outline-none mb-5"
+          />
+
+          <label className="block text-xs uppercase tracking-wide text-slate-400 mb-2">Timeframe</label>
+          <div className="flex gap-2 mb-5">
+            {tfOptions.map(tf => (
+              <Chip key={tf} active={timeframe === tf} onClick={() => setTimeframe(tf)}>
+                {tf}
+              </Chip>
+            ))}
           </div>
 
-          {/* timeframes */}
-          <div className="mb-5">
-            <label className="block text-xs uppercase tracking-wide text-slate-400 mb-2">Timeframe</label>
-            <div className="flex gap-2">
-              {tfOptions.map(tf => (
-                <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`chip ${timeframe === tf ? 'chip-active' : ''}`}
-                >
-                  {tf}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* filters */}
-          <div className="mb-4 flex flex-col md:flex-row md:items-center gap-2">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 mb-4">
             <input
               type="text"
               placeholder="Search projects…"
@@ -154,23 +148,16 @@ export default function Home() {
             <span className="text-xs text-slate-400 ml-auto">{selected.length}/10 selected</span>
           </div>
 
-          {/* projects */}
           {loadingProjects ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-10 skeleton" />
-              ))}
+              {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-10 skeleton" />)}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto pr-1">
               {filteredProjects.slice(0, 60).map(p => {
                 const active = selected.includes(p.ticker);
                 return (
-                  <button
-                    key={p.ticker}
-                    onClick={() => toggle(p.ticker)}
-                    className={`chip w-full justify-start ${active ? 'chip-active' : ''}`}
-                  >
+                  <Chip key={p.ticker} active={active} onClick={() => toggle(p.ticker)} className="w-full justify-start">
                     {p.imgUrl
                       ? <img src={p.imgUrl} alt={p.name} className="h-6 w-6 rounded-full object-cover" />
                       : <div className="h-6 w-6 rounded-full bg-white/10" />}
@@ -178,29 +165,23 @@ export default function Home() {
                       <div className="truncate text-sm font-medium">{p.name}</div>
                       <div className="text-[11px] text-slate-400">{p.ticker}</div>
                     </div>
-                  </button>
+                  </Chip>
                 );
               })}
             </div>
           )}
 
-          {/* CTA */}
           <div className="mt-6">
-            <button
-              onClick={search}
-              disabled={loading || !username || selected.length === 0}
-              className="btn-primary"
-            >
+            <Button onClick={search} disabled={loading || !username || selected.length === 0}>
               {loading ? 'Searching…' : '⚡ Search Rankings'}
-            </button>
+            </Button>
           </div>
-        </section>
+        </Card>
 
         {/* RESULTS */}
         {results && (
           <section id="results" className="mt-10 space-y-5 animate-fade-in">
-            {/* summary */}
-            <div className="card glass">
+            <Card glass>
               <h2 className="text-xl font-bold mb-4">Results for @{results.user.username}</h2>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
@@ -216,48 +197,36 @@ export default function Home() {
                   <p className="text-2xl font-bold">{results.stats.avg_mindshare.toFixed(2)}%</p>
                 </div>
               </div>
-            </div>
+            </Card>
 
-            {/* board */}
             <div className="grid md:grid-cols-2 gap-5">
-              <div className="card glass">
+              <Card glass>
                 <h3 className="text-lg font-semibold mb-3">Leaderboard</h3>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-slate-400 border-b border-white/5">
-                      <th className="text-left py-2">Project</th>
-                      <th className="text-left py-2">Time</th>
-                      <th className="text-left py-2">Rank</th>
-                      <th className="text-left py-2">Mindshare</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {results.rankings.flatMap(r =>
-                      r.timeframes.map(tf => (
-                        <tr key={r.ticker + tf.duration} className="border-b border-white/5">
-                          <td className="py-2">
-                            <div className="flex items-center gap-2">
-                              {r.imgUrl ? <img src={r.imgUrl} className="h-6 w-6 rounded-full" /> : <div className="h-6 w-6 rounded-full bg-white/10" />}
-                              <span className="font-medium">{r.project}</span>
-                              <span className="text-[11px] text-slate-400">({r.ticker})</span>
-                            </div>
-                          </td>
-                          <td className="py-2">{tf.duration}</td>
-                          <td className={`py-2 ${getRankColor(tf.rank)}`}>#{tf.rank}</td>
-                          <td className="py-2">{tf.mindshare.toFixed(2)}%</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                <Table
+                  columns={['Project', 'Time', 'Rank', 'Mindshare']}
+                  rows={results.rankings.flatMap(r =>
+                    r.timeframes.map(tf => [
+                      <div className="flex items-center gap-2" key={r.ticker}>
+                        {r.imgUrl
+                          ? <img src={r.imgUrl} className="h-6 w-6 rounded-full" />
+                          : <div className="h-6 w-6 rounded-full bg-white/10" />}
+                        <span className="font-medium">{r.project}</span>
+                        <span className="text-[11px] text-slate-400">({r.ticker})</span>
+                      </div>,
+                      tf.duration,
+                      <span className={getRankColor(tf.rank)}>#{tf.rank}</span>,
+                      `${tf.mindshare.toFixed(2)}%`
+                    ])
+                  )}
+                />
+              </Card>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {results.rankings.map((r) => {
+                {results.rankings.map(r => {
                   const topBadges = r.timeframes.filter(t => t.rank <= 100).map(t => t.duration);
                   const best = r.timeframes.reduce((m, t) => t.rank < m.rank ? t : m, r.timeframes[0]);
                   return (
-                    <div key={r.ticker} className="card hover-lift">
+                    <Card key={r.ticker}>
                       <div className="flex items-center gap-3 mb-3">
                         {r.imgUrl ? <img src={r.imgUrl} className="h-9 w-9 rounded-full" /> : <div className="h-9 w-9 rounded-full bg-white/10" />}
                         <div className="min-w-0">
@@ -269,24 +238,18 @@ export default function Home() {
                           <div className="text-[11px] text-slate-400">{best.duration}</div>
                         </div>
                       </div>
-
                       {topBadges.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-3">
-                          {topBadges.map(b => (
-                            <span key={b} className="chip text-[11px] bg-yellow-500/20 text-yellow-300 ring-1 ring-yellow-300/20">
-                              🏆 Top 100 {b}
-                            </span>
-                          ))}
+                          {topBadges.map(b => <Badge key={b} text={`Top 100 ${b}`} />)}
                         </div>
                       )}
-
                       <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-cyan-400 to-blue-400"
                           style={{ width: `${Math.min(100, (best.mindshare || 0))}%` }}
                         />
                       </div>
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
