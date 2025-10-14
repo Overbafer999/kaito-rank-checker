@@ -1,4 +1,4 @@
-// lightweight localStorage helper (safe SSR)
+// app/lib/utils/local.ts
 export const local = {
   get<T>(key: string, fallback: T): T {
     if (typeof window === 'undefined') return fallback;
