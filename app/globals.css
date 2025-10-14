@@ -2,65 +2,186 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================
+   CSS Variables (Kaito-style)
+   ========================= */
 :root {
-  --background: #0a0e1a;
-  --foreground: #e8f4ff;
+  --bg-0: #0a0e1a;         /* глубокий фон */
+  --bg-1: #0f141b;         /* карточки */
+  --fg:   #e8f4ff;         /* основной текст */
+  --muted:#93a4b7;         /* вторичный текст */
+
+  --cyan: #21d4fd;
+  --blue: #3f8cff;
+  --lime: #32ffdc;
+
+  --border: rgba(255,255,255,0.08);
+  --ring:   rgba(33,212,253,0.55);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1e293b;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
-
-/* Animations */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.3;
+/* =========================
+   Base
+   ========================= */
+@layer base {
+  * {
+    box-sizing: border-box;
   }
-  50% {
-    opacity: 0.6;
+
+  html, body, #__next {
+    height: 100%;
+  }
+
+  body {
+    color: var(--fg);
+    background:
+      radial-gradient(1200px 600px at 50% -150px, rgba(33,212,253,.12), transparent),
+      radial-gradient(900px 480px at 5% -120px, rgba(50,255,220,.10), transparent 70%),
+      linear-gradient(to bottom, var(--bg-0), #0b1220);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgba(33,212,253,0.28);
+    color: white;
+  }
+
+  a {
+    color: var(--cyan);
+  }
+  a:hover { opacity: .9; }
+
+  /* Focus states */
+  :where(button, [role="button"], input, select, textarea, a):focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px rgba(33,212,253,0.18);
+    border-radius: .6rem;
+  }
+
+  /* Scrollbar (WebKit) */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0b1220; border-radius: 8px; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #334155, #1f2937);
+    border-radius: 8px;
+    border: 2px solid #0b1220;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #3b4a63, #243041); }
+}
+
+/* =========================
+   Keyframes
+   ========================= */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(33,212,253,0.0); }
+  50%      { box-shadow: 0 0 36px -10px rgba(33,212,253,0.65); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================
+   Components & Utilities
+   ========================= */
+@layer components {
+  /* Карточка по умолчанию */
+  .card {
+    @apply rounded-2xl ring-1 p-5 md:p-6;
+    background:
+      linear-gradient(120deg, rgba(50,255,220,0.06), transparent 40%),
+      var(--bg-1);
+    border-color: var(--border);
+  }
+  .card:hover {
+    box-shadow: 0 0 40px -20px rgba(33,212,253,0.6);
+    transition: box-shadow .25s ease;
+  }
+
+  /* Стекло */
+  .glass {
+    background: color-mix(in oklab, var(--bg-1) 88%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+  }
+
+  /* Главная кнопка */
+  .btn-primary {
+    @apply w-full font-semibold rounded-xl py-3;
+    background: linear-gradient(90deg, var(--cyan), var(--blue));
+  }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-primary:not(:disabled):hover { filter: brightness(1.02); }
+
+  /* Вторичная кнопка/чип */
+  .chip {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+  }
+  .chip-active {
+    background: linear-gradient(90deg, var(--cyan), var(--blue));
+    border-color: transparent;
+    color: white;
+    animation: glowPulse 2.6s ease-in-out infinite;
+  }
+
+  /* Текст-градиент */
+  .text-gradient {
+    background: linear-gradient(90deg, var(--cyan), var(--blue));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Светящееся кольцо */
+  .ring-glow {
+    box-shadow:
+      0 0 0 1px var(--border),
+      0 0 28px -12px var(--ring);
+  }
+
+  /* Hover lift для карточек */
+  .hover-lift {
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .hover-lift:hover { transform: translateY(-2px); }
+
+  /* Скелетон / шиммер */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 37%, rgba(255,255,255,0.06) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.6s linear infinite;
+    border-radius: .75rem;
   }
 }
 
-/* Smooth transitions */
-* {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+@layer utilities {
+  .bg-app {
+    background:
+      radial-gradient(1200px 600px at 50% -150px, rgba(33,212,253,.12), transparent),
+      radial-gradient(900px 480px at 5% -120px, rgba(50,255,220,.10), transparent 70%),
+      linear-gradient(to bottom, var(--bg-0), #0b1220);
+  }
+  .animate-float   { animation: float 5s ease-in-out infinite; }
+  .animate-fade-in { animation: fadeIn .35s ease-out both; }
 }
 
-/* Focus states */
-button:focus-visible,
-input:focus-visible {
-  outline: 2px solid #06b6d4;
-  outline-offset: 2px;
+/* =========================
+   Motion Preferences
+   ========================= */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
 }
