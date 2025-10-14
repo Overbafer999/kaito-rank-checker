@@ -1,12 +1,13 @@
 // app/api/search/route.ts
 import { NextResponse } from 'next/server';
-import { SmartKaitoAPI } from '../../../lib/kaito-api'; // путь из app/api/search к /lib
+import { SmartKaitoAPI } from '../../../lib/kaito-api';
+
 const api = new SmartKaitoAPI();
 
 export async function POST(req: Request) {
   try {
-    const body = await req.text();
-    const { username, projects } = body ? JSON.parse(body) : {};
+    const bodyText = await req.text();
+    const { username, projects } = bodyText ? JSON.parse(bodyText) : {};
 
     if (!username || !Array.isArray(projects) || projects.length === 0) {
       return NextResponse.json({ error: 'Bad input' }, { status: 400 });
