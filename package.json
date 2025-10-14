@@ -1,24 +1,49 @@
 {
-  "name": "kaito-rank-checker",
-  "version": "3.0.0",
-  "description": "Kaito Rank Tracker - Find your rankings across 60+ trending crypto projects",
-  "main": "index.js",
+  "name": "kaito-rank-checker-v2",
+  "version": "2.0.0",
+  "description": "Smart Kaito Rank Tracker with auto-updating projects and multi-timeframe support",
+  "private": true,
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build required'",
-    "start": "vercel dev"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@vercel/kv": "^2.0.0",
+    "framer-motion": "^11.11.11",
+    "lucide-react": "^0.456.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.9",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "tailwindcss": "^3.4.14",
+    "postcss": "^8.4.47",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.15"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   },
   "keywords": [
     "kaito",
     "crypto",
-    "twitter",
     "rankings",
     "leaderboard",
-    "api"
+    "web3",
+    "nextjs"
   ],
   "author": "@Over9725",
-  "license": "MIT",
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "license": "MIT"
 }
