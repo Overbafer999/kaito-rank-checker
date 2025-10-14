@@ -4,22 +4,6 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "devCommand": "next dev",
-  "crons": [
-    {
-      "path": "/api/cron/update-projects",
-      "schedule": "0 0 * * *"
-    }
-  ],
-  "functions": {
-    "api/search/route.ts": {
-      "maxDuration": 25,
-      "memory": 512
-    },
-    "api/cron/update-projects/route.ts": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
@@ -37,12 +21,6 @@
           "value": "Content-Type, Authorization"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/health",
-      "destination": "/api/health"
     }
   ]
 }
