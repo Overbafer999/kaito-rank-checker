@@ -6,7 +6,7 @@ import Chip from './components/Chip';
 import Table from './components/Table';
 import StatsCard from './components/StatsCard';
 import ProjectTile from './components/ProjectTile';
-import { local } from './lib/utils/local';
+import { local } from '../lib/utils/local';
 
 type Project = { id: number; name: string; ticker: string; category: string; imgUrl: string };
 type RankingEntry = { duration: string; rank: number; mindshare: number };
