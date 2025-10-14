@@ -16,8 +16,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [loadingProjects, setLoadingProjects] = useState(true);
-  
-  // NEW: Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name');
@@ -70,7 +68,7 @@ export default function Home() {
     const top100 = timeframes.filter(tf => tf.rank <= 100);
     if (top100.length === 0) return null;
     return (
-      <div className="flex gap-1 flex-wrap">
+      <div className="flex gap-1 flex-wrap mb-2">
         {top100.map(tf => (
           <span key={tf.duration} className="text-xs bg-yellow-600 px-2 py-0.5 rounded">
             🏆 Top 100 {tf.duration}
@@ -80,181 +78,207 @@ export default function Home() {
     );
   };
 
-  // Filter & Sort projects
   const filteredProjects = projects
     .filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            p.ticker.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
+      const matchesCategory = categoryFilter === 'all' || 
+                              (categoryFilter === 'preTGE' && p.category === 'preTGE') ||
+                              (categoryFilter === 'postTGE' && p.category === 'postTGE');
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
       if (sortBy === 'name') return a.name.localeCompare(b.name);
-      return a.category.localeCompare(b.category);
+      return (a.category || '').localeCompare(b.category || '');
     });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-4">
       <div className="max-w-6xl mx-auto py-8">
+        
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
             Kaito Rank Tracker V2
           </h1>
-          <p className="text-gray-400">Search across 130+ crypto projects</p>
+          <p className="text-gray-400">Search across 130+ crypto projects • All timeframes</p>
         </div>
 
-        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-purple-500/30">
+        {/* Search Form */}
+        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-8 mb-8 border border-purple-500/30 shadow-2xl">
+          
+          {/* Username Input */}
           <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2">Twitter Username</label>
+            <label className="block text-sm font-semibold mb-2 text-purple-300">Twitter Username</label>
             <input
               type="text"
               placeholder="@username"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-900 rounded-xl border border-purple-500/30 focus:border-purple-500 outline-none"
+              className="w-full px-4 py-3 bg-slate-900/80 rounded-xl border border-purple-500/30 focus:border-purple-500 outline-none transition"
             />
           </div>
 
+          {/* Projects Section */}
           <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2">
+            <label className="block text-sm font-semibold mb-3 text-purple-300">
               Select Projects ({selected.length}/10)
             </label>
 
-            {/* NEW: Search & Filters */}
-            <div className="mb-4 space-y-3">
+            {/* Search & Filters Bar */}
+            <div className="space-y-3 mb-4">
               <input
                 type="text"
-                placeholder="Search projects..."
+                placeholder="🔍 Search projects..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 bg-slate-900 rounded-lg border border-purple-500/30 focus:border-purple-500 outline-none text-sm"
+                className="w-full px-4 py-2 bg-slate-900/80 rounded-lg border border-purple-500/30 focus:border-purple-500 outline-none text-sm transition"
               />
               
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap items-center">
                 <select
                   value={categoryFilter}
                   onChange={e => setCategoryFilter(e.target.value)}
-                  className="px-3 py-2 bg-slate-900 rounded-lg border border-purple-500/30 text-sm outline-none"
+                  className="px-3 py-2 bg-slate-900/80 rounded-lg border border-purple-500/30 text-sm outline-none cursor-pointer hover:border-purple-500 transition"
                 >
                   <option value="all">All Categories</option>
-                  <option value="preTGE">Pre-TGE</option>
-                  <option value="postTGE">Post-TGE</option>
+                  <option value="preTGE">🔵 Pre-TGE</option>
+                  <option value="postTGE">🟢 Post-TGE</option>
                 </select>
 
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value as 'name' | 'category')}
-                  className="px-3 py-2 bg-slate-900 rounded-lg border border-purple-500/30 text-sm outline-none"
+                  className="px-3 py-2 bg-slate-900/80 rounded-lg border border-purple-500/30 text-sm outline-none cursor-pointer hover:border-purple-500 transition"
                 >
-                  <option value="name">Sort by Name</option>
-                  <option value="category">Sort by Category</option>
+                  <option value="name">Sort: A-Z</option>
+                  <option value="category">Sort: Category</option>
                 </select>
 
                 {selected.length > 0 && (
                   <button
                     onClick={() => setSelected([])}
-                    className="px-3 py-2 bg-red-600 rounded-lg text-sm hover:bg-red-700 transition"
+                    className="px-3 py-2 bg-red-600/80 rounded-lg text-sm hover:bg-red-600 transition"
                   >
                     Clear All
                   </button>
                 )}
+
+                <span className="text-xs text-gray-500 ml-auto">
+                  {filteredProjects.length} projects
+                </span>
               </div>
             </div>
 
+            {/* Projects Grid */}
             {loadingProjects ? (
-              <p className="text-gray-400">Loading projects...</p>
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+                <p className="text-gray-400 mt-2">Loading projects...</p>
+              </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2">
-                {filteredProjects.slice(0, 60).map(p => (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-80 overflow-y-auto p-2 bg-slate-900/30 rounded-xl">
+                {filteredProjects.slice(0, 80).map(p => (
                   <button
                     key={p.ticker}
                     onClick={() => toggle(p.ticker)}
-                    className={`px-3 py-2 rounded-lg text-sm transition flex flex-col items-start ${
+                    className={`px-3 py-2.5 rounded-lg text-sm transition-all flex flex-col items-start gap-1 ${
                       selected.includes(p.ticker)
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-slate-700 hover:bg-slate-600'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
+                        : 'bg-slate-800/80 hover:bg-slate-700 border border-slate-700'
                     }`}
                   >
-                    <span className="font-semibold">{p.name}</span>
+                    <span className="font-semibold text-left">{p.name}</span>
                     <span className="text-xs opacity-70">
-                      {p.category === 'preTGE' ? '🔵 Pre-TGE' : p.category === 'postTGE' ? '🟢 Post-TGE' : '⚪'}
+                      {p.category === 'preTGE' ? '🔵 Pre' : p.category === 'postTGE' ? '🟢 Post' : '⚪'}
                     </span>
                   </button>
                 ))}
               </div>
             )}
-            <p className="text-xs text-gray-500 mt-2">
-              Showing {filteredProjects.length} projects
-            </p>
           </div>
 
+          {/* Search Button */}
           <button
             onClick={search}
             disabled={loading || !username || selected.length === 0}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-bold hover:opacity-90 transition disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            {loading ? 'Searching...' : 'Search Rankings'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
+                Searching...
+              </span>
+            ) : (
+              'Search Rankings ⚡'
+            )}
           </button>
         </div>
 
+        {/* Results */}
         {results && (
-          <div className="space-y-6">
-            <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
-              <h2 className="text-2xl font-bold mb-4">
+          <div className="space-y-6 animate-fadeIn">
+            
+            {/* Stats Card */}
+            <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 shadow-2xl">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <span className="text-2xl">📊</span>
                 Results for @{results.user.username}
               </h2>
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-gray-400 text-sm">Projects Found</p>
-                  <p className="text-3xl font-bold text-purple-400">{results.stats.total_projects}</p>
+                <div className="bg-slate-900/50 rounded-xl p-4">
+                  <p className="text-gray-400 text-sm mb-1">Projects Found</p>
+                  <p className="text-4xl font-bold text-purple-400">{results.stats.total_projects}</p>
                 </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Best Rank</p>
-                  <p className="text-3xl font-bold text-green-400">#{results.stats.best_rank}</p>
+                <div className="bg-slate-900/50 rounded-xl p-4">
+                  <p className="text-gray-400 text-sm mb-1">Best Rank</p>
+                  <p className="text-4xl font-bold text-green-400">#{results.stats.best_rank}</p>
                 </div>
-                <div>
-                  <p className="text-gray-400 text-sm">Avg Mindshare</p>
-                  <p className="text-3xl font-bold text-blue-400">{results.stats.avg_mindshare.toFixed(2)}%</p>
+                <div className="bg-slate-900/50 rounded-xl p-4">
+                  <p className="text-gray-400 text-sm mb-1">Avg Mindshare</p>
+                  <p className="text-4xl font-bold text-blue-400">{results.stats.avg_mindshare.toFixed(2)}%</p>
                 </div>
               </div>
             </div>
 
+            {/* Project Cards */}
             <div className="space-y-4">
               {results.rankings.map((r: any) => (
-                <div key={r.ticker} className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
-                  <div className="flex items-center gap-3 mb-3">
+                <div key={r.ticker} className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 shadow-xl hover:border-purple-400 transition">
+                  
+                  {/* Project Header */}
+                  <div className="flex items-center gap-3 mb-4">
                     {r.imgUrl && (
-                      <img src={r.imgUrl} alt={r.project} className="w-10 h-10 rounded-full" />
+                      <img src={r.imgUrl} alt={r.project} className="w-12 h-12 rounded-full border-2 border-purple-500" />
                     )}
                     <div className="flex-1">
                       <h3 className="text-xl font-bold">{r.project}</h3>
-                      <span className="text-xs bg-purple-600 px-2 py-1 rounded">{r.ticker}</span>
+                      <span className="text-xs bg-purple-600/80 px-2 py-1 rounded-full">{r.ticker}</span>
                     </div>
                   </div>
 
-                  {/* NEW: Top 100 Badges */}
-                  <div className="mb-3">
-                    {getTop100Badge(r.timeframes)}
-                  </div>
+                  {/* Top 100 Badges */}
+                  {getTop100Badge(r.timeframes)}
 
+                  {/* Timeframes Table */}
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr className="text-left text-sm text-gray-400 border-b border-slate-700">
-                          <th className="pb-2">Time</th>
-                          <th className="pb-2">Rank</th>
-                          <th className="pb-2">Mindshare</th>
+                          <th className="pb-3 font-semibold">Timeframe</th>
+                          <th className="pb-3 font-semibold">Rank</th>
+                          <th className="pb-3 font-semibold">Mindshare</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {r.timeframes.map((tf: any) => (
-                          <tr key={tf.duration} className="border-b border-slate-700/50">
-                            <td className="py-3 font-semibold">{tf.duration}</td>
-                            <td className={`py-3 text-lg ${getRankColor(tf.rank)}`}>
+                        {r.timeframes.map((tf: any, idx: number) => (
+                          <tr key={tf.duration} className={`border-b border-slate-700/50 ${idx === r.timeframes.length - 1 ? 'border-0' : ''}`}>
+                            <td className="py-3 font-bold text-purple-300">{tf.duration}</td>
+                            <td className={`py-3 text-xl ${getRankColor(tf.rank)} flex items-center gap-2`}>
                               #{tf.rank}
-                              {tf.rank <= 100 && <span className="ml-2 text-xs">🏆</span>}
+                              {tf.rank <= 100 && <span className="text-base">🏆</span>}
                             </td>
-                            <td className="py-3 text-purple-400">{tf.mindshare.toFixed(2)}%</td>
+                            <td className="py-3 text-purple-400 font-semibold">{tf.mindshare.toFixed(2)}%</td>
                           </tr>
                         ))}
                       </tbody>
@@ -267,9 +291,10 @@ export default function Home() {
         )}
       </div>
 
-      <footer className="text-center text-gray-500 text-sm mt-12">
-        <p>Thanks to <a href="https://gomtu.xyz" target="_blank" className="text-purple-400 hover:underline">gomtu.xyz</a> & <a href="https://kaito.ai" target="_blank" className="text-purple-400 hover:underline">Kaito AI</a></p>
-        <p>Made by @Over9725</p>
+      {/* Footer */}
+      <footer className="text-center text-gray-500 text-sm mt-16 pb-8">
+        <p>Thanks to <a href="https://gomtu.xyz" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">gomtu.xyz</a> & <a href="https://kaito.ai" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">Kaito AI</a></p>
+        <p className="mt-1">Made with 💜 by @Over9725</p>
       </footer>
     </div>
   );
