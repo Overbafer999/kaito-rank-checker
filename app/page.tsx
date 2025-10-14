@@ -33,7 +33,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch('https://gomtu.xyz/api/kaito/leaderboard');
+        const r = await fetch('/api/projects');
         const j = await r.json();
         setProjects(j?.data || []);
       } finally {
