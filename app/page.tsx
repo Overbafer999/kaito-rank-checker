@@ -3,24 +3,22 @@ import { useState, useEffect, useMemo } from 'react';
 import Card from './components/Card';
 import Button from './components/Button';
 import Chip from './components/Chip';
-import Badge from './components/Badge';
 import Table from './components/Table';
+import StatsCard from './components/StatsCard';
+import ProjectTile from './components/ProjectTile';
+import { local } from './lib/utils/local';
 
-type Project = {
-  id: number;
-  name: string;
-  ticker: string;
-  category: string;
-  imgUrl: string;
-};
+type Project = { id: number; name: string; ticker: string; category: string; imgUrl: string };
 type RankingEntry = { duration: string; rank: number; mindshare: number };
 type GroupedRanking = { project: string; ticker: string; imgUrl: string; timeframes: RankingEntry[] };
 
 export default function Home() {
-  const [username, setUsername] = useState('');
-  const [timeframe, setTimeframe] = useState<'7D' | '30D' | '3M'>('30D');
+  const [username, setUsername] = useState(local.get('username', ''));
+  const [timeframe, setTimeframe] = useState<'7D' | '30D' | '3M'>(
+    (typeof window !== 'undefined' && (new URLSearchParams(location.search).get('tf') as any)) || '30D'
+  );
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>(local.get('selected', []));
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<null | {
@@ -44,6 +42,21 @@ export default function Home() {
     })();
   }, []);
 
+  // persist state
+  useEffect(() => {
+    local.set('username', username);
+    local.set('selected', selected);
+  }, [username, selected]);
+
+  // update URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search);
+      p.set('tf', timeframe);
+      window.history.replaceState({}, '', `?${p.toString()}`);
+    }
+  }, [timeframe]);
+
   const filteredProjects = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     return projects.filter(p => {
@@ -54,11 +67,13 @@ export default function Home() {
   }, [projects, searchTerm, categoryFilter]);
 
   const toggle = (ticker: string) => {
-    setSelected(prev => {
-      if (prev.includes(ticker)) return prev.filter(x => x !== ticker);
-      if (prev.length >= 10) return prev;
-      return [...prev, ticker];
-    });
+    setSelected(prev =>
+      prev.includes(ticker)
+        ? prev.filter(x => x !== ticker)
+        : prev.length >= 10
+        ? prev
+        : [...prev, ticker]
+    );
   };
 
   const search = async () => {
@@ -69,11 +84,11 @@ export default function Home() {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, projects: selected })
+        body: JSON.stringify({ username, projects: selected }),
       });
       const data = await res.json();
       setResults(data.data);
-      setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 50);
+      setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch {
       alert('Search failed');
     } finally {
@@ -108,7 +123,7 @@ export default function Home() {
           </p>
         </header>
 
-        {/* MAIN SEARCH */}
+        {/* SEARCH CARD */}
         <Card glass glow>
           <label className="block text-xs uppercase tracking-wide text-slate-400 mb-2">Twitter Username</label>
           <input
@@ -181,23 +196,12 @@ export default function Home() {
         {/* RESULTS */}
         {results && (
           <section id="results" className="mt-10 space-y-5 animate-fade-in">
-            <Card glass>
-              <h2 className="text-xl font-bold mb-4">Results for @{results.user.username}</h2>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-slate-400 text-xs uppercase">Projects</p>
-                  <p className="text-2xl font-bold">{results.stats.total_projects}</p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-xs uppercase">Best Rank</p>
-                  <p className="text-2xl font-bold text-cyan-300">#{results.stats.best_rank ?? '—'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-xs uppercase">Avg MS</p>
-                  <p className="text-2xl font-bold">{results.stats.avg_mindshare.toFixed(2)}%</p>
-                </div>
-              </div>
-            </Card>
+            <StatsCard
+              username={results.user.username}
+              total={results.stats.total_projects}
+              best={results.stats.best_rank}
+              avg={results.stats.avg_mindshare}
+            />
 
             <div className="grid md:grid-cols-2 gap-5">
               <Card glass>
@@ -224,32 +228,19 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {results.rankings.map(r => {
                   const topBadges = r.timeframes.filter(t => t.rank <= 100).map(t => t.duration);
-                  const best = r.timeframes.reduce((m, t) => t.rank < m.rank ? t : m, r.timeframes[0]);
+                  const best = r.timeframes.reduce((m, t) => (t.rank < m.rank ? t : m), r.timeframes[0]);
                   return (
-                    <Card key={r.ticker}>
-                      <div className="flex items-center gap-3 mb-3">
-                        {r.imgUrl ? <img src={r.imgUrl} className="h-9 w-9 rounded-full" /> : <div className="h-9 w-9 rounded-full bg-white/10" />}
-                        <div className="min-w-0">
-                          <div className="font-semibold truncate">{r.project}</div>
-                          <div className="text-[12px] text-slate-400">{r.ticker}</div>
-                        </div>
-                        <div className="ml-auto text-right">
-                          <div className={`text-sm ${getRankColor(best.rank)}`}>#{best.rank}</div>
-                          <div className="text-[11px] text-slate-400">{best.duration}</div>
-                        </div>
-                      </div>
-                      {topBadges.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {topBadges.map(b => <Badge key={b} text={`Top 100 ${b}`} />)}
-                        </div>
-                      )}
-                      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-cyan-400 to-blue-400"
-                          style={{ width: `${Math.min(100, (best.mindshare || 0))}%` }}
-                        />
-                      </div>
-                    </Card>
+                    <ProjectTile
+                      key={r.ticker}
+                      project={r.project}
+                      ticker={r.ticker}
+                      imgUrl={r.imgUrl}
+                      rank={best.rank}
+                      duration={best.duration}
+                      mindshare={best.mindshare}
+                      badges={topBadges}
+                      getRankColor={getRankColor}
+                    />
                   );
                 })}
               </div>
