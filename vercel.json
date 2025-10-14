@@ -1,24 +1,29 @@
 {
-  "functions": {
-    "api/search.js": {
-      "maxDuration": 25,
-      "memory": 512
-    }
-  },
-  "rewrites": [
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "devCommand": "next dev",
+  "crons": [
     {
-      "source": "/",
-      "destination": "/api/home"
+      "path": "/api/cron/update-projects",
+      "schedule": "0 */6 * * *"
     }
   ],
+  "functions": {
+    "api/search/route.ts": {
+      "maxDuration": 25,
+      "memory": 512
+    },
+    "api/cron/update-projects/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
   "headers": [
     {
-      "source": "/api/search",
+      "source": "/api/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=1800, stale-while-revalidate=3600"
-        },
         {
           "key": "Access-Control-Allow-Origin",
           "value": "*"
@@ -29,9 +34,15 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type"
+          "value": "Content-Type, Authorization"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/api/health"
     }
   ]
 }
