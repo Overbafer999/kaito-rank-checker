@@ -8,7 +8,6 @@ type Project = {
   category: string;
   imgUrl: string;
 };
-
 type RankingEntry = { duration: string; rank: number; mindshare: number };
 type GroupedRanking = { project: string; ticker: string; imgUrl: string; timeframes: RankingEntry[] };
 
@@ -28,7 +27,6 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'preTGE' | 'postTGE'>('all');
 
-  // --- fetch projects ---
   useEffect(() => {
     (async () => {
       try {
@@ -41,7 +39,6 @@ export default function Home() {
     })();
   }, []);
 
-  // --- derived ---
   const filteredProjects = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     return projects.filter(p => {
@@ -71,7 +68,6 @@ export default function Home() {
       });
       const data = await res.json();
       setResults(data.data);
-      // опционально: scroll к результатам
       setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' }), 50);
     } catch {
       alert('Search failed');
@@ -81,33 +77,34 @@ export default function Home() {
   };
 
   const tfOptions: Array<'7D' | '30D' | '3M'> = ['7D', '30D', '3M'];
-
   const getRankColor = (rank: number) => {
     if (rank <= 10) return 'text-yellow-300 font-semibold';
     if (rank <= 50) return 'text-emerald-300';
     if (rank <= 100) return 'text-cyan-300';
     return 'text-slate-300';
-    // за пределами 100 оставляем обычный цвет
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(1200px_600px_at_50%_-150px,rgba(34,211,238,0.12),transparent),linear-gradient(to_bottom,#0a0e1a,#0b1220)] text-white">
+    <div className="min-h-screen bg-app text-white">
       <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
 
         {/* HEADER */}
-        <header className="text-center mb-10 md:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 ring-1 ring-white/10 shadow-[0_0_40px_-20px_rgba(33,212,253,0.6)]">
+        <header className="text-center mb-12 animate-fade-in">
+          <div className="chip ring-glow mx-auto mb-4 animate-float">
             <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
             <span className="text-xs tracking-wide text-cyan-300/90">Leaderboard • Mindshare</span>
           </div>
-          <h1 className="mt-4 text-3xl md:text-5xl font-extrabold tracking-tight">
-            Find your rankings across <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">top crypto projects</span>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+            Find your rankings across{' '}
+            <span className="text-gradient">top crypto projects</span>
           </h1>
-          <p className="mt-3 text-slate-400">Search up to 10 projects • Multi-timeframe support • Real-time data</p>
+          <p className="mt-3 text-slate-400">
+            Search up to 10 projects • Multi-timeframe support • Real-time data
+          </p>
         </header>
 
-        {/* SEARCH CARD */}
-        <section className="bg-[#0f141b]/80 backdrop-blur-xs rounded-2xl p-5 md:p-7 ring-1 ring-white/5 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)]">
+        {/* MAIN CARD */}
+        <section className="card glass hover-lift">
           {/* username */}
           <div className="mb-5">
             <label className="block text-xs uppercase tracking-wide text-slate-400 mb-2">Twitter Username</label>
@@ -128,12 +125,7 @@ export default function Home() {
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={[
-                    'px-4 py-2 rounded-xl text-sm font-semibold ring-1 transition-all',
-                    timeframe === tf
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 ring-transparent shadow-[0_0_30px_-10px_rgba(34,211,238,0.6)]'
-                      : 'bg-white/5 hover:bg-white/10 ring-white/10'
-                  ].join(' ')}
+                  className={`chip ${timeframe === tf ? 'chip-active' : ''}`}
                 >
                   {tf}
                 </button>
@@ -162,11 +154,11 @@ export default function Home() {
             <span className="text-xs text-slate-400 ml-auto">{selected.length}/10 selected</span>
           </div>
 
-          {/* projects grid */}
+          {/* projects */}
           {loadingProjects ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-10 rounded-lg bg-white/5 animate-pulse" />
+                <div key={i} className="h-10 skeleton" />
               ))}
             </div>
           ) : (
@@ -177,28 +169,15 @@ export default function Home() {
                   <button
                     key={p.ticker}
                     onClick={() => toggle(p.ticker)}
-                    className={[
-                      'group flex items-center gap-2 px-3 py-2 rounded-lg border text-left',
-                      active
-                        ? 'border-transparent bg-gradient-to-r from-cyan-600/80 to-blue-600/70 shadow-[0_0_28px_-12px_rgba(34,211,238,0.7)]'
-                        : 'border-white/10 bg-white/5 hover:bg-white/10'
-                    ].join(' ')}
+                    className={`chip w-full justify-start ${active ? 'chip-active' : ''}`}
                   >
-                    {p.imgUrl ? (
-                      <img src={p.imgUrl} alt={p.name} className="h-6 w-6 rounded-full object-cover" />
-                    ) : (
-                      <div className="h-6 w-6 rounded-full bg-white/10" />
-                    )}
+                    {p.imgUrl
+                      ? <img src={p.imgUrl} alt={p.name} className="h-6 w-6 rounded-full object-cover" />
+                      : <div className="h-6 w-6 rounded-full bg-white/10" />}
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium">{p.name}</div>
                       <div className="text-[11px] text-slate-400">{p.ticker}</div>
                     </div>
-                    <span className={[
-                      'ml-auto text-[11px] px-2 py-0.5 rounded-md',
-                      active ? 'bg-black/30 text-white' : 'bg-black/30 text-slate-300'
-                    ].join(' ')}>
-                      {active ? 'Selected' : 'Select'}
-                    </span>
                   </button>
                 );
               })}
@@ -206,11 +185,11 @@ export default function Home() {
           )}
 
           {/* CTA */}
-          <div className="mt-5">
+          <div className="mt-6">
             <button
               onClick={search}
               disabled={loading || !username || selected.length === 0}
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 py-3 rounded-xl font-semibold hover:opacity-95 active:opacity-90 transition disabled:opacity-50"
+              className="btn-primary"
             >
               {loading ? 'Searching…' : '⚡ Search Rankings'}
             </button>
@@ -219,9 +198,9 @@ export default function Home() {
 
         {/* RESULTS */}
         {results && (
-          <section id="results" className="mt-8 md:mt-10 space-y-5">
+          <section id="results" className="mt-10 space-y-5 animate-fade-in">
             {/* summary */}
-            <div className="bg-[#0f141b]/80 rounded-2xl p-5 ring-1 ring-white/5">
+            <div className="card glass">
               <h2 className="text-xl font-bold mb-4">Results for @{results.user.username}</h2>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
@@ -241,8 +220,7 @@ export default function Home() {
 
             {/* board */}
             <div className="grid md:grid-cols-2 gap-5">
-              {/* table */}
-              <div className="bg-[#0f141b]/80 rounded-2xl p-5 ring-1 ring-white/5">
+              <div className="card glass">
                 <h3 className="text-lg font-semibold mb-3">Leaderboard</h3>
                 <table className="w-full text-sm">
                   <thead>
@@ -254,7 +232,7 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody>
-                    {results.rankings.flatMap(r => 
+                    {results.rankings.flatMap(r =>
                       r.timeframes.map(tf => (
                         <tr key={r.ticker + tf.duration} className="border-b border-white/5">
                           <td className="py-2">
@@ -274,13 +252,12 @@ export default function Home() {
                 </table>
               </div>
 
-              {/* tiles */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {results.rankings.map((r) => {
                   const topBadges = r.timeframes.filter(t => t.rank <= 100).map(t => t.duration);
                   const best = r.timeframes.reduce((m, t) => t.rank < m.rank ? t : m, r.timeframes[0]);
                   return (
-                    <div key={r.ticker} className="rounded-2xl p-4 ring-1 ring-white/5 bg-[linear-gradient(120deg,rgba(50,255,220,0.06),transparent_40%),#0f141b] hover:shadow-[0_0_40px_-20px_rgba(33,212,253,0.6)] transition">
+                    <div key={r.ticker} className="card hover-lift">
                       <div className="flex items-center gap-3 mb-3">
                         {r.imgUrl ? <img src={r.imgUrl} className="h-9 w-9 rounded-full" /> : <div className="h-9 w-9 rounded-full bg-white/10" />}
                         <div className="min-w-0">
@@ -296,14 +273,13 @@ export default function Home() {
                       {topBadges.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-3">
                           {topBadges.map(b => (
-                            <span key={b} className="text-[10px] px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 ring-1 ring-yellow-300/20">
+                            <span key={b} className="chip text-[11px] bg-yellow-500/20 text-yellow-300 ring-1 ring-yellow-300/20">
                               🏆 Top 100 {b}
                             </span>
                           ))}
                         </div>
                       )}
 
-                      {/* mini progress bar as placeholder for sparkline */}
                       <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-cyan-400 to-blue-400"
@@ -318,8 +294,9 @@ export default function Home() {
           </section>
         )}
 
-        {/* FOOTER */}
-        <footer className="text-center text-slate-500 text-sm py-10">By <span className="text-cyan-300">@OveR_XBT</span></footer>
+        <footer className="text-center text-slate-500 text-sm py-10">
+          By <span className="text-cyan-300">@OveR_XBT</span>
+        </footer>
       </div>
     </div>
   );
