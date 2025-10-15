@@ -114,66 +114,92 @@ export class SmartKaitoAPI {
   }
 
   // ---------- PUBLIC API ----------
-  public async searchUser(username: string, selectedProjects: string[]): Promise<SearchResult> {
-    const [projects, userData] = await Promise.all([
-      this.fetchProjects(),
-      this.fetchUserData(username),
-    ]);
+  public async searchUser(username: string, selectedProjects: string[]): Promise<SearchResult & { debug: any }> {
+  const [projects, userData] = await Promise.all([
+    this.fetchProjects(),
+    this.fetchUserData(username)
+  ]);
 
-    const projectMap = new Map(projects.map(p => [p.ticker, p]));
-    const grouped = new Map<string, RankingEntry[]>();
+  // карта проектов по тикеру (в верхнем регистре)
+  const projectMap = new Map(projects.map(p => [String(p.ticker || '').toUpperCase(), p]));
 
-    userData
-      .filter((d: any) => d.tier === 'tier1' && selectedProjects.includes(d.topic_id))
-      .forEach((entry: any) => {
-        if (!grouped.has(entry.topic_id)) grouped.set(entry.topic_id, []);
-        grouped.get(entry.topic_id)!.push({
-          duration: entry.duration,
-          rank: entry.rank,
-          mindshare: entry.mindshare || 0,
-        });
-      });
+  // нормализуем выбранные тикеры (в верхний регистр)
+  const sel = new Set((selectedProjects || []).map(s => String(s).toUpperCase()));
 
-    const rankings: GroupedRanking[] = [];
-    const order: Record<string, number> = { '7D': 1, '30D': 2, '3M': 3, '6M': 4, '12M': 5 };
-
-    grouped.forEach((timeframes, ticker) => {
-      const project = projectMap.get(ticker);
-      timeframes.sort((a, b) => (order[a.duration] || 99) - (order[b.duration] || 99));
-      rankings.push({
-        project: project?.name || ticker,
-        ticker,
-        imgUrl: project?.imgUrl || '',
-        timeframes,
-      });
-    });
-
-    rankings.sort(
-      (a, b) => Math.min(...a.timeframes.map(t => t.rank)) - Math.min(...b.timeframes.map(t => t.rank))
-    );
-
-    const allRanks = rankings.flatMap(r => r.timeframes.map(t => t.rank));
-    const allMS = rankings.flatMap(r => r.timeframes.map(t => t.mindshare));
-
-    return {
-      user: { username, found: rankings.length > 0 },
-      rankings,
-      stats: {
-        total_projects: rankings.length,
-        best_rank: allRanks.length ? Math.min(...allRanks) : null,
-        avg_mindshare: allMS.length ? allMS.reduce((a, b) => a + b, 0) / allMS.length : 0,
-      },
-    };
-  }
-
-  public async getAvailableProjects(): Promise<Project[]> {
-    return this.fetchProjects();
-  }
-
-  public cleanupCache(): void {
-    const now = Date.now();
-    for (const [k, v] of this.cache.entries()) {
-      if (now - v.ts > v.ttl) this.cache.delete(k);
+  // поможем себе разными ключами: topic_id / ticker / symbol / id
+  const pickKey = (d: any): string | null => {
+    const keys = [
+      d?.topic_id,
+      d?.ticker,
+      d?.symbol,
+      d?.id,        // иногда id = тикер
+      d?.project,   // вдруг приходит имя
+    ];
+    for (const k of keys) {
+      if (!k) continue;
+      const v = String(k).toUpperCase().trim();
+      if (v) return v;
     }
+    return null;
+  };
+
+  // НЕ режем по tier — оставим все
+  const grouped = new Map<string, RankingEntry[]>();
+  const debug_raw_keys: string[] = [];
+
+  for (const entry of (userData || [])) {
+    const key = pickKey(entry);
+    if (!key) continue;
+    debug_raw_keys.push(key);
+
+    // матчим по выбранным проектам
+    if (!sel.has(key)) continue;
+
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push({
+      duration: entry.duration || entry.timeframe || entry.window || 'NA',
+      rank: Number(entry.rank ?? entry.position ?? entry.place ?? 999999),
+      mindshare: Number(entry.mindshare ?? entry.ms ?? entry.score ?? 0),
+    });
   }
+
+  // собираем итог
+  const order: Record<string, number> = { '7D': 1, '30D': 2, '3M': 3, '6M': 4, '12M': 5 };
+  const rankings: GroupedRanking[] = [];
+
+  grouped.forEach((timeframes, key) => {
+    // аккуратно отсортируем таймфреймы
+    timeframes.sort((a, b) => (order[a.duration] || 99) - (order[b.duration] || 99));
+
+    const proj = projectMap.get(key);
+    rankings.push({
+      project: proj?.name || key,
+      ticker: key,
+      imgUrl: proj?.imgUrl || '',
+      timeframes,
+    });
+  });
+
+  rankings.sort(
+    (a, b) => Math.min(...a.timeframes.map(t => t.rank)) - Math.min(...b.timeframes.map(t => t.rank))
+  );
+
+  const allRanks = rankings.flatMap(r => r.timeframes.map(t => t.rank)).filter(Number.isFinite);
+  const allMS = rankings.flatMap(r => r.timeframes.map(t => t.mindshare)).filter(Number.isFinite);
+
+  return {
+    user: { username, found: rankings.length > 0 },
+    rankings,
+    stats: {
+      total_projects: rankings.length,
+      best_rank: allRanks.length ? Math.min(...allRanks) : null,
+      avg_mindshare: allMS.length ? allMS.reduce((a, b) => a + b, 0) / allMS.length : 0,
+    },
+    debug: {
+      userData_count: (userData || []).length,
+      matched_topics: Array.from(grouped.keys()),
+      raw_keys_seen: debug_raw_keys,
+    }
+  };
 }
+
