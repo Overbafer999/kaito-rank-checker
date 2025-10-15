@@ -1,27 +1,13 @@
 // lib/kaito-api.ts
+import type { Project, RankingEntry, GroupedRanking } from '../types';
 
-interface Project {
-  id: number;
-  name: string;
-  ticker: string;
-  category: string;
-  imgUrl: string;
+interface ScraperOptions {
+  username: string;
+  projects: string[];
+  timeframe?: '7D' | '30D' | '3M';
 }
 
-interface RankingEntry {
-  duration: string;
-  rank: number;
-  mindshare: number;
-}
-
-interface GroupedRanking {
-  project: string;
-  ticker: string;
-  imgUrl: string;
-  timeframes: RankingEntry[];
-}
-
-interface SearchResult {
+interface ScraperResult {
   user: { username: string; found: boolean };
   rankings: GroupedRanking[];
   stats: {
@@ -31,175 +17,275 @@ interface SearchResult {
   };
 }
 
-export class SmartKaitoAPI {
+export class KaitoScraper {
+  private baseUrl = 'https://yaps.kaito.ai';
   private cache = new Map<string, any>();
-  private rateLimiter = { requests: [] as number[], maxRequests: 20, windowMs: 60000 };
 
-  private async checkRateLimit(): Promise<void> {
-    const now = Date.now();
-    this.rateLimiter.requests = this.rateLimiter.requests.filter(t => now - t < this.rateLimiter.windowMs);
-    if (this.rateLimiter.requests.length >= this.rateLimiter.maxRequests) {
-      await new Promise(r => setTimeout(r, 1000));
-      return this.checkRateLimit();
-    }
-    this.rateLimiter.requests.push(now);
-  }
+  /**
+   * ВАЖНО: Это серверный парсер, работает только в Next.js API routes
+   * Нельзя вызывать напрямую из клиента
+   */
 
   private getCached(key: string): any {
     const entry = this.cache.get(key);
-    if (!entry || Date.now() - entry.ts > entry.ttl) return null;
+    if (!entry || Date.now() - entry.ts > 30 * 60 * 1000) return null;
     return entry.data;
   }
 
-  private setCache(key: string, data: any, ttl: number): void {
-    this.cache.set(key, { data, ts: Date.now(), ttl });
+  private setCache(key: string, data: any): void {
+    this.cache.set(key, { data, ts: Date.now() });
   }
 
-  // ---------- SAFE FETCH HELPERS ----------
-  private async safeJson(res: Response): Promise<any> {
-    if (!res.ok) return null;
-    try {
-      const txt = await res.text();
-      return txt ? JSON.parse(txt) : null;
-    } catch {
-      return null;
-    }
-  }
-
-  // ---------- EXTERNAL CALLS (safe) ----------
-  private async fetchProjects(): Promise<Project[]> {
-    const cached = this.getCached('projects');
+  /**
+   * Парсит конкретный leaderboard проекта
+   */
+  private async scrapeProjectLeaderboard(
+    projectSlug: string,
+    timeframe: string = '30D'
+  ): Promise<any[]> {
+    const cacheKey = `leaderboard:${projectSlug}:${timeframe}`;
+    const cached = this.getCached(cacheKey);
     if (cached) return cached;
 
     try {
-      const res = await fetch('https://gomtu.xyz/api/kaito/leaderboard', {
-        headers: { accept: 'application/json' },
-        cache: 'no-store',
-      });
+      // URL leaderboard'а проекта
+      const url = `${this.baseUrl}/yapper-leaderboards/${projectSlug}`;
+      
+      console.log(`📡 Fetching: ${url}`);
 
-      const json = await this.safeJson(res);
-      const data: Project[] = Array.isArray(json?.data) ? json.data : [];
-      this.setCache('projects', data, 86_400_000); // 24h
-      return data;
-    } catch {
-      return [];
-    }
-  }
-
-  private async fetchUserData(username: string): Promise<any[]> {
-    const key = `user:${username}`;
-    const cached = this.getCached(key);
-    if (cached) return cached;
-
-    await this.checkRateLimit();
-    try {
-      const res = await fetch('https://gomtu.xyz/api/kaito/leaderboard-search', {
-        method: 'POST',
+      // Пытаемся получить данные через fetch
+      // Kaito использует Server-Side Rendering, поэтому HTML содержит данные
+      const response = await fetch(url, {
         headers: {
-          'Content-Type': 'application/json',
-          accept: 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml',
+          'Accept-Language': 'en-US,en;q=0.9',
         },
-        body: JSON.stringify({ username }),
-        cache: 'no-store',
       });
 
-      const json = await this.safeJson(res);
-      const data: any[] = Array.isArray(json?.data) ? json.data : [];
-      this.setCache(key, data, 1_800_000); // 30 мин
-      return data;
-    } catch {
-      this.setCache(key, [], 60_000);
+      if (!response.ok) {
+        console.log(`❌ ${projectSlug}: ${response.status}`);
+        return [];
+      }
+
+      const html = await response.text();
+
+      // Пытаемся найти JSON данные в HTML
+      // Kaito обычно инжектит данные в <script id="__NEXT_DATA__">
+      const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/);
+      
+      if (nextDataMatch) {
+        try {
+          const jsonData = JSON.parse(nextDataMatch[1]);
+          
+          // Извлекаем leaderboard данные из Next.js pageProps
+          const leaderboardData = jsonData?.props?.pageProps?.leaderboard || [];
+          
+          this.setCache(cacheKey, leaderboardData);
+          return leaderboardData;
+        } catch (e) {
+          console.log(`❌ Не удалось распарсить JSON для ${projectSlug}`);
+        }
+      }
+
+      return [];
+    } catch (error) {
+      console.error(`❌ Ошибка при скрейпинге ${projectSlug}:`, error);
       return [];
     }
   }
 
-  // ---------- PUBLIC API ----------
-  public async searchUser(username: string, selectedProjects: string[]): Promise<SearchResult & { debug: any }> {
-  const [projects, userData] = await Promise.all([
-    this.fetchProjects(),
-    this.fetchUserData(username)
-  ]);
+  /**
+   * Ищет юзера в leaderboard данных
+   */
+  private findUserInLeaderboard(
+    leaderboardData: any[],
+    username: string
+  ): { rank: number; mindshare: number } | null {
+    const normalizedUsername = username.toLowerCase().replace(/^@/, '');
 
-  // карта проектов по тикеру (в верхнем регистре)
-  const projectMap = new Map(projects.map(p => [String(p.ticker || '').toUpperCase(), p]));
+    for (let i = 0; i < leaderboardData.length; i++) {
+      const entry = leaderboardData[i];
+      const entryUsername = (entry.username || entry.handle || '').toLowerCase().replace(/^@/, '');
 
-  // нормализуем выбранные тикеры (в верхний регистр)
-  const sel = new Set((selectedProjects || []).map(s => String(s).toUpperCase()));
-
-  // поможем себе разными ключами: topic_id / ticker / symbol / id
-  const pickKey = (d: any): string | null => {
-    const keys = [
-      d?.topic_id,
-      d?.ticker,
-      d?.symbol,
-      d?.id,        // иногда id = тикер
-      d?.project,   // вдруг приходит имя
-    ];
-    for (const k of keys) {
-      if (!k) continue;
-      const v = String(k).toUpperCase().trim();
-      if (v) return v;
+      if (entryUsername === normalizedUsername) {
+        return {
+          rank: entry.rank || i + 1,
+          mindshare: entry.mindshare || entry.score || 0,
+        };
+      }
     }
+
     return null;
-  };
-
-  // НЕ режем по tier — оставим все
-  const grouped = new Map<string, RankingEntry[]>();
-  const debug_raw_keys: string[] = [];
-
-  for (const entry of (userData || [])) {
-    const key = pickKey(entry);
-    if (!key) continue;
-    debug_raw_keys.push(key);
-
-    // матчим по выбранным проектам
-    if (!sel.has(key)) continue;
-
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key)!.push({
-      duration: entry.duration || entry.timeframe || entry.window || 'NA',
-      rank: Number(entry.rank ?? entry.position ?? entry.place ?? 999999),
-      mindshare: Number(entry.mindshare ?? entry.ms ?? entry.score ?? 0),
-    });
   }
 
-  // собираем итог
-  const order: Record<string, number> = { '7D': 1, '30D': 2, '3M': 3, '6M': 4, '12M': 5 };
-  const rankings: GroupedRanking[] = [];
+  /**
+   * ГЛАВНЫЙ МЕТОД: Ищет юзера по всем проектам
+   */
+  public async search(options: ScraperOptions): Promise<ScraperResult> {
+    const { username, projects, timeframe = '30D' } = options;
 
-  grouped.forEach((timeframes, key) => {
-    // аккуратно отсортируем таймфреймы
-    timeframes.sort((a, b) => (order[a.duration] || 99) - (order[b.duration] || 99));
+    console.log(`🔍 Ищем @${username} в ${projects.length} проектах...`);
 
-    const proj = projectMap.get(key);
-    rankings.push({
-      project: proj?.name || key,
-      ticker: key,
-      imgUrl: proj?.imgUrl || '',
-      timeframes,
-    });
-  });
+    const rankings: GroupedRanking[] = [];
 
-  rankings.sort(
-    (a, b) => Math.min(...a.timeframes.map(t => t.rank)) - Math.min(...b.timeframes.map(t => t.rank))
-  );
+    // Список популярных проектов и их slug'ов на Kaito
+    const projectSlugs: Record<string, string> = {
+      // Pre-TGE
+      'BABYLON': 'babylon',
+      'BERACHAIN': 'berachain',
+      'BERA': 'berachain',
+      'SCROLL': 'scroll',
+      'LINEA': 'linea',
+      'MONAD': 'monad',
+      'INITIA': 'initia',
+      'STORY': 'story-protocol',
+      'FUEL': 'fuel',
+      
+      // Post-TGE
+      'BTC': 'bitcoin',
+      'ETH': 'ethereum',
+      'SOL': 'solana',
+      'ARB': 'arbitrum',
+      'OP': 'optimism',
+      'POL': 'polygon',
+      'MATIC': 'polygon',
+      'AVAX': 'avalanche',
+      'SUI': 'sui',
+      'APT': 'aptos',
+      'BASE': 'base',
+    };
 
-  const allRanks = rankings.flatMap(r => r.timeframes.map(t => t.rank)).filter(Number.isFinite);
-  const allMS = rankings.flatMap(r => r.timeframes.map(t => t.mindshare)).filter(Number.isFinite);
+    // Ищем по каждому проекту
+    for (const ticker of projects) {
+      const slug = projectSlugs[ticker.toUpperCase()];
 
-  return {
-    user: { username, found: rankings.length > 0 },
-    rankings,
-    stats: {
-      total_projects: rankings.length,
-      best_rank: allRanks.length ? Math.min(...allRanks) : null,
-      avg_mindshare: allMS.length ? allMS.reduce((a, b) => a + b, 0) / allMS.length : 0,
-    },
-    debug: {
-      userData_count: (userData || []).length,
-      matched_topics: Array.from(grouped.keys()),
-      raw_keys_seen: debug_raw_keys,
+      if (!slug) {
+        console.log(`⚠️  Нет slug для ${ticker}, пропускаем`);
+        continue;
+      }
+
+      try {
+        // Парсим leaderboard
+        const leaderboardData = await this.scrapeProjectLeaderboard(slug, timeframe);
+
+        if (leaderboardData.length === 0) {
+          console.log(`⚠️  ${ticker}: leaderboard пустой`);
+          continue;
+        }
+
+        // Ищем юзера
+        const userEntry = this.findUserInLeaderboard(leaderboardData, username);
+
+        if (userEntry) {
+          console.log(`✅ ${ticker}: Rank #${userEntry.rank}, Mindshare ${userEntry.mindshare}%`);
+
+          rankings.push({
+            project: ticker,
+            ticker: ticker,
+            imgUrl: '',
+            timeframes: [
+              {
+                duration: timeframe,
+                rank: userEntry.rank,
+                mindshare: userEntry.mindshare,
+              },
+            ],
+          });
+        } else {
+          console.log(`❌ ${ticker}: юзер не найден в топ-100`);
+        }
+
+        // Rate limiting: ждем 300ms между запросами
+        await new Promise(r => setTimeout(r, 300));
+      } catch (error) {
+        console.error(`❌ Ошибка при поиске в ${ticker}:`, error);
+      }
     }
-  };
+
+    // Сортируем по рангу
+    rankings.sort((a, b) => {
+      const rankA = Math.min(...a.timeframes.map(t => t.rank));
+      const rankB = Math.min(...b.timeframes.map(t => t.rank));
+      return rankA - rankB;
+    });
+
+    // Статистика
+    const allRanks = rankings.flatMap(r => r.timeframes.map(t => t.rank));
+    const allMS = rankings.flatMap(r => r.timeframes.map(t => t.mindshare));
+
+    return {
+      user: {
+        username,
+        found: rankings.length > 0,
+      },
+      rankings,
+      stats: {
+        total_projects: rankings.length,
+        best_rank: allRanks.length ? Math.min(...allRanks) : null,
+        avg_mindshare: allMS.length ? allMS.reduce((a, b) => a + b, 0) / allMS.length : 0,
+      },
+    };
+  }
 }
 
+/**
+ * АЛЬТЕРНАТИВНЫЙ МЕТОД: Используем Puppeteer для более надежного скрейпинга
+ * Раскомментируй если нужен headless browser
+ */
+
+/*
+import puppeteer from 'puppeteer';
+
+export class KaitoScraperWithPuppeteer {
+  private browser: any = null;
+
+  async init() {
+    if (!this.browser) {
+      this.browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      });
+    }
+  }
+
+  async scrapeProjectLeaderboard(projectSlug: string) {
+    await this.init();
+    
+    const page = await this.browser.newPage();
+    
+    // Блокируем debugger
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(window, 'debugger', {
+        get: function() {},
+        set: function() {}
+      });
+    });
+
+    const url = `https://yaps.kaito.ai/yapper-leaderboards/${projectSlug}`;
+    await page.goto(url, { waitUntil: 'networkidle0' });
+
+    // Ждем загрузки leaderboard
+    await page.waitForSelector('.leaderboard-table', { timeout: 10000 });
+
+    // Парсим таблицу
+    const leaderboardData = await page.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll('.leaderboard-row'));
+      return rows.map((row, index) => ({
+        rank: index + 1,
+        username: row.querySelector('.username')?.textContent || '',
+        mindshare: parseFloat(row.querySelector('.mindshare')?.textContent || '0'),
+      }));
+    });
+
+    await page.close();
+    return leaderboardData;
+  }
+
+  async close() {
+    if (this.browser) {
+      await this.browser.close();
+    }
+  }
+}
+*/
